@@ -1433,6 +1433,14 @@ function cancelarFechamento() {
 
 async function confirmarFechamento() {
 
+    
+    if (window.fechamentoEmProcessamento) {
+        return;
+    }
+
+    window.fechamentoEmProcessamento = true;
+
+
 
     let valorDesconto =
         document.getElementById(
@@ -1530,12 +1538,13 @@ async function confirmarFechamento() {
         );
 
 
-    if (!confirmar) {
+   if (!confirmar) {
 
-        return;
+    window.fechamentoEmProcessamento = false;
 
-    }
+    return;
 
+}
 
 let usuarioFirebase;
 
@@ -2034,30 +2043,29 @@ await addDoc(
     }
 
 
+    
     catch (erro) {
-
 
         console.error(
             "Erro ao enviar fechamento:",
             erro
         );
 
-
         alert(
-
             "❌ Não foi possível enviar o fechamento.\n\n" +
-
             (erro.code || "sem código") +
-
             "\n\n" +
-
             (erro.message || erro)
-
         );
+
+    } finally {
+
+        window.fechamentoEmProcessamento = false;
 
     }
 
 }
+
 
 
 /* =========================================
