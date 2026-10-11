@@ -1628,6 +1628,28 @@ try {
         const idMesa =
             obterIdMesa();
 
+        
+        // VERIFICAR SE JÁ EXISTE UM FECHAMENTO PENDENTE
+
+        const fechamentosPendentes = await getDocs(
+            collection(db, "fechamentos")
+        );
+
+        const fechamentoExistente = fechamentosPendentes.docs.find(
+            documento => documento.data().idMesa === idMesa
+        );
+
+        if (fechamentoExistente) {
+
+            alert(
+                "Já existe um fechamento pendente para esta mesa ou quarto. " +
+                "Aguarde o processamento antes de tentar novamente."
+            );
+
+            return;
+
+        }
+
 
         /* ==============================
            MARCA A MESA COMO PAGAMENTO
