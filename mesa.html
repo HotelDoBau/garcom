@@ -104,6 +104,7 @@
 
 
 
+
     </section>
 
 
@@ -307,7 +308,8 @@ let pedidosMesa = [];
 
 let totalFechamentoAtual = 0;
 
-
+let fechamentoPendenteAtual = null;
+    
 /* =========================================
    AGUARDAR FIREBASE
 ========================================= */
@@ -426,47 +428,53 @@ function mostrarMesa() {
         );
 
 
-    if (
-        pedidosMesa.length === 0
-    ) {
+   
+    if (fechamentoPendenteAtual) {
 
+    statusMesa.textContent = "Pagamento";
 
-        statusMesa.textContent =
-            "Livre";
+    statusMesa.style.color = "#d97706";
 
+    const botaoFecharMesa =
+        document.getElementById("botaoFecharMesa");
 
-        statusMesa.style.color =
-            "#268542";
+    if (botaoFecharMesa) {
 
-
-        valorMesa.textContent =
-            "R$ 0,00";
-
-
-        listaConsumo.innerHTML = `
-
-            <p class="mesa-vazia">
-
-                Nenhum item lançado
-                nesta mesa.
-
-            </p>
-
-        `;
-
-
-        return;
+        botaoFecharMesa.textContent =
+            "Confirmar Fechamento";
 
     }
 
+} else if (pedidosMesa.length === 0) {
 
-    statusMesa.textContent =
-        "Ocupada";
+        statusMesa.textContent = "Livre";
 
+        statusMesa.style.color = "#268542";
 
-    statusMesa.style.color =
-        "#245d88";
+        const botaoFecharMesa =
+    document.getElementById("botaoFecharMesa");
 
+if (botaoFecharMesa) {
+    botaoFecharMesa.textContent = "💰 Fechar mesa";
+}
+
+        valorMesa.textContent = "R$ 0,00";
+
+        listaConsumo.innerHTML = `
+            <p class="mesa-vazia">
+                Nenhum item lançado nesta mesa.
+            </p>
+        `;
+
+        return;
+
+    } else {
+
+        statusMesa.textContent = "Ocupada";
+
+        statusMesa.style.color = "#245d88";
+
+    }
 
     let totalMesa = 0;
 
@@ -1092,6 +1100,7 @@ try {
     usuarioFirebase =
         await aguardarAutenticacaoFirebase();
 
+
 } catch (erroAutenticacao) {
 
     console.error(
@@ -1103,18 +1112,20 @@ try {
         "Não foi possível confirmar sua autenticação no Firebase. Tente novamente."
     );
 
+    window.fechamentoEmProcessamento = false;
+
     return;
 
 }
 
-    const {
 
-        db,
-        collection,
-        onSnapshot
-
-    } = window.firebaseHotel;
-
+   
+const {
+    db,
+    collection,
+    onSnapshot,
+    getDocs
+} = window.firebaseHotel;
 
     const referenciaPedidos =
         collection(
@@ -1180,8 +1191,67 @@ try {
 
     );
 
-}
 
+
+    
+    /* =========================================
+       ESCUTAR FECHAMENTOS DA MESA
+    ========================================= */
+
+    const referenciaFechamentos =
+        collection(db, "fechamentos");
+
+    onSnapshot(
+        referenciaFechamentos,
+
+        snapshot => {
+
+            fechamentoPendenteAtual = null;
+
+            snapshot.forEach(documento => {
+
+                const fechamento = documento.data();
+
+                const statusFechamento =
+                    String(fechamento.status || "")
+                        .toLowerCase();
+
+                const encerrado =
+                    [
+                        "concluido",
+                        "finalizado",
+                        "fechado"
+                    ].includes(statusFechamento);
+
+                if (
+                    fechamento.idMesa === obterIdMesa() &&
+                    !encerrado
+                ) {
+
+                    fechamentoPendenteAtual = {
+                        id: documento.id,
+                        ...fechamento
+                    };
+
+                }
+
+            });
+
+            mostrarMesa();
+
+        },
+
+        erro => {
+
+            console.error(
+                "Erro ao monitorar fechamentos:",
+                erro
+            );
+
+        }
+    );
+
+    }
 
 /* =========================================
    NOVO PEDIDO
@@ -1275,12 +1345,20 @@ function calcularTotalMesa() {
    ABRIR FECHAMENTO
 ========================================= */
 
+
 function fecharMesa() {
 
+    // Se já existe um fechamento pendente,
+    // encaminha para a confirmação final.
+    if (fechamentoPendenteAtual) {
 
-    if (
-        pedidosMesa.length === 0
-    ) {
+        confirmarFechamento();
+
+        return;
+
+    }
+
+    if (pedidosMesa.length === 0) {
 
         alert(
             "Esta mesa não possui consumo."
@@ -1290,56 +1368,37 @@ function fecharMesa() {
 
     }
 
-
     const totalMesa =
         calcularTotalMesa();
-
 
     totalFechamentoAtual =
         totalMesa;
 
-
     document.getElementById(
         "subtotalFechamento"
     ).textContent =
-
-        "R$ " +
-        totalMesa.toFixed(2);
-
+        "R$ " + totalMesa.toFixed(2);
 
     document.getElementById(
         "descontoFechamento"
-    ).value =
-        "";
-
+    ).value = "";
 
     document.getElementById(
         "totalFechamento"
     ).textContent =
-
-        "R$ " +
-        totalMesa.toFixed(2);
-
+        "R$ " + totalMesa.toFixed(2);
 
     document.getElementById(
         "modalFechamento"
-    ).classList.add(
-        "mostrar"
-    );
+    ).classList.add("mostrar");
 
+    setTimeout(() => {
 
-    setTimeout(
-        () => {
+        document.getElementById(
+            "descontoFechamento"
+        ).focus();
 
-
-            document.getElementById(
-                "descontoFechamento"
-            ).focus();
-
-
-        },
-        100
-    );
+    }, 100);
 
 }
 
@@ -1442,6 +1501,163 @@ async function confirmarFechamento() {
 
     window.fechamentoEmProcessamento = true;
 
+
+    // =========================================
+    // SEGUNDA ETAPA: CONFIRMAR APÓS A IMPRESSÃO
+    // =========================================
+
+    if (fechamentoPendenteAtual) {
+
+        try {
+
+            const usuarioFirebase =
+                await aguardarAutenticacaoFirebase();
+
+            const {
+                db,
+                doc,
+                collection,
+                getDocs,
+                deleteDoc,
+                updateDoc,
+                setDoc,
+                serverTimestamp
+            } = window.firebaseHotel;
+
+            const fechamento =
+                fechamentoPendenteAtual;
+
+            const referenciaFechamento =
+                doc(
+                    db,
+                    "fechamentos",
+                    fechamento.id
+                );
+
+            // Só pode liberar após a impressão.
+            if (
+                String(fechamento.status || "")
+                    .toLowerCase() !== "impresso"
+            ) {
+
+                alert(
+                    "A conta ainda não foi confirmada como impressa. " +
+                    "Aguarde a impressão antes de finalizar o atendimento."
+                );
+
+                return;
+            }
+
+            const confirmarFinal =
+                confirm(
+                    "A conta já foi impressa.\n\n" +
+                    "Deseja confirmar o fechamento de " +
+                    nomeLocal + " " +
+                    String(numeroMesa).padStart(2, "0") +
+                    " e liberar o atendimento?"
+                );
+
+            if (!confirmarFinal) {
+                return;
+            }
+
+            const idMesa =
+                obterIdMesa();
+
+            // Excluir somente os pedidos deste atendimento.
+            const referenciaPedidos =
+                collection(
+                    db,
+                    "mesas",
+                    idMesa,
+                    "pedidos"
+                );
+
+            const pedidosAtuais =
+                await getDocs(referenciaPedidos);
+
+            for (const pedido of pedidosAtuais.docs) {
+
+                await deleteDoc(pedido.ref);
+
+            }
+
+            // Registrar a confirmação final na auditoria.
+            await setDoc(
+                doc(
+                    db,
+                    "auditoria_pedidos",
+                    "fechamento_final_" + fechamento.id
+                ),
+                {
+                    acao: "Confirmou fechamento",
+
+                    descricao:
+                        "Fechamento confirmado após a impressão.",
+
+                    fechamentoId: fechamento.id,
+                    idMesa: idMesa,
+
+                    garcomNome:
+                        fechamento.garcomNome ||
+                        "Não informado",
+
+                    usuarioUid: usuarioFirebase.uid,
+
+                    criadoEm: serverTimestamp()
+                }
+            );
+
+            // Liberar a mesa ou o quarto.
+            await setDoc(
+                doc(db, "mesas", idMesa),
+                {
+                    numero: Number(numeroMesa),
+                    status: "livre",
+                    atualizadoEm: serverTimestamp()
+                },
+                { merge: true }
+            );
+
+            // Marcar o fechamento como concluído por último.
+            await updateDoc(
+                referenciaFechamento,
+                {
+                    status: "concluido",
+                    concluidoEm: serverTimestamp()
+                }
+            );
+
+            fechamentoPendenteAtual = null;
+
+            alert(
+                "Fechamento confirmado. Atendimento liberado."
+            );
+
+            window.location.href = "index.html";
+
+            return;
+
+        } catch (erroFinalizacao) {
+
+            console.error(
+                "Erro ao confirmar fechamento:",
+                erroFinalizacao
+            );
+
+            alert(
+                "Não foi possível concluir o atendimento.\n\n" +
+                (erroFinalizacao.message || erroFinalizacao)
+            );
+
+        } finally {
+
+            window.fechamentoEmProcessamento = false;
+
+        }
+
+        return;
+    }
 
 
     let valorDesconto =
@@ -1640,21 +1856,40 @@ try {
             obterIdMesa();
 
         
+      
         // VERIFICAR SE JÁ EXISTE UM FECHAMENTO PENDENTE
 
         const fechamentosPendentes = await getDocs(
             collection(db, "fechamentos")
         );
 
-        const fechamentoExistente = fechamentosPendentes.docs.find(
-            documento => documento.data().idMesa === idMesa
-        );
+        const fechamentoExistente =
+            fechamentosPendentes.docs.find(documento => {
+
+                const fechamento = documento.data();
+
+                const status =
+                    String(fechamento.status || "")
+                        .toLowerCase();
+
+                const encerrado = [
+                    "concluido",
+                    "finalizado",
+                    "fechado"
+                ].includes(status);
+
+                return (
+                    fechamento.idMesa === idMesa &&
+                    !encerrado
+                );
+
+            });
 
         if (fechamentoExistente) {
 
             alert(
                 "Já existe um fechamento pendente para esta mesa ou quarto. " +
-                "Aguarde o processamento antes de tentar novamente."
+                "Aguarde a impressão e confirme o fechamento pelo botão principal."
             );
 
             return;
@@ -2009,37 +2244,40 @@ await addDoc(
            FINALIZAR FECHAMENTO
         ============================== */
 
+      
+        // FECHAMENTO ENVIADO PARA IMPRESSÃO
+        // Manter o atendimento na tela da mesa.
+
         document.getElementById(
             "modalFechamento"
-        ).classList.remove(
-            "mostrar"
-        );
+        ).classList.remove("mostrar");
 
+        fechamentoPendenteAtual = {
+            id: fechamentoRef.id,
+            idMesa: idMesa,
+            status: "novo",
+            total: totalFinal,
+            subtotal: totalFechamentoAtual,
+            desconto: desconto
+        };
+
+        const botaoFecharMesa =
+            document.getElementById("botaoFecharMesa");
+
+        if (botaoFecharMesa) {
+            botaoFecharMesa.textContent =
+                "Confirmar Fechamento";
+        }
+
+        mostrarMesa();
 
         alert(
-
-            "✅ Fechamento do " +
-
-            nomeLocal +
-
-            " " +
-
-            String(numeroMesa)
-                .padStart(2, "0") +
-
-            " enviado para o computador.\n\n" +
-
+            "Fechamento enviado para o computador.\n\n" +
             "Total a pagar: R$ " +
-
             totalFinal.toFixed(2) +
-
-            "\n\nO atendimento ficará em PAGAMENTO até a conta ser impressa."
-
+            "\n\nO atendimento continuará em PAGAMENTO. " +
+            "Após a impressão, toque em Confirmar Fechamento."
         );
-
-
-        window.location.href =
-            "index.html";
 
 
     }
