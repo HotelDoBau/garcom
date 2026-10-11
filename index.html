@@ -2976,96 +2976,93 @@ async function iniciarMesas() {
        CONSUMO DAS MESAS / QUARTOS
     ========================================= */
 
-    function observarConsumo(
+  
+function observarConsumo(tipo, numero) {
 
-        tipo,
+    const idMesa =
+        tipo === "quarto"
+            ? `quarto_${String(numero).padStart(2, "0")}`
+            : `mesa_${String(numero).padStart(2, "0")}`;
 
-        numero
+    const referenciaMesa = doc(
+        db,
+        "mesas",
+        idMesa
+    );
 
-    ) {
+    const referenciaPedidos = collection(
+        db,
+        "mesas",
+        idMesa,
+        "pedidos"
+    );
 
+    let statusMesa = null;
+    let consumoVazio = true;
 
-        const idMesa =
+    function atualizarStatusVisual() {
 
-            tipo === "quarto"
+        // O pagamento tem prioridade sobre o consumo.
+        if (statusMesa === "pagamento") {
 
-                ? `quarto_${String(numero).padStart(2, "0")}`
-
-                : `mesa_${String(numero).padStart(2, "0")}`;
-
-
-        const referenciaPedidos =
-            collection(
-
-                db,
-
-                "mesas",
-
-                idMesa,
-
-                "pedidos"
-
+            definirStatusLocal(
+                tipo,
+                numero,
+                "pagamento"
             );
 
+            return;
+        }
 
-
-        onSnapshot(
-
-            referenciaPedidos,
-
-            snapshot => {
-
-
-                if (
-
-                    snapshot.empty
-
-                ) {
-
-                    definirStatusLocal(
-
-                        tipo,
-
-                        numero,
-
-                        "livre"
-
-                    );
-
-                }
-
-                else {
-
-                    definirStatusLocal(
-
-                        tipo,
-
-                        numero,
-
-                        "ocupada"
-
-                    );
-
-                }
-
-            },
-
-
-            erro => {
-
-                console.error(
-
-                    `Erro ao verificar consumo de ${tipo} ${numero}:`,
-
-                    erro
-
-                );
-
-            }
-
+        // Sem pagamento pendente, verifica o consumo.
+        definirStatusLocal(
+            tipo,
+            numero,
+            consumoVazio ? "livre" : "ocupada"
         );
-
     }
+
+    onSnapshot(
+        referenciaMesa,
+        snapshot => {
+
+            statusMesa = snapshot.exists()
+                ? snapshot.data().status
+                : null;
+
+            atualizarStatusVisual();
+
+        },
+        erro => {
+
+            console.error(
+                `Erro ao verificar status de ${tipo} ${numero}:`,
+                erro
+            );
+
+        }
+    );
+
+    onSnapshot(
+        referenciaPedidos,
+        snapshot => {
+
+            consumoVazio = snapshot.empty;
+
+            atualizarStatusVisual();
+
+        },
+        erro => {
+
+            console.error(
+                `Erro ao verificar consumo de ${tipo} ${numero}:`,
+                erro
+            );
+
+        }
+    );
+
+}
 
 
 
