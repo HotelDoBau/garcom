@@ -1153,6 +1153,203 @@ function calcularTotalMesa() {
 
 }
 
+    
+
+    
+/* =========================================
+   MOSTRAR DADOS DA MESA
+========================================= */
+
+function mostrarMesa() {
+
+    const statusMesa =
+        document.getElementById("statusMesa");
+
+    const valorMesa =
+        document.getElementById("valorMesa");
+
+    const listaConsumo =
+        document.getElementById("listaConsumo");
+
+    const botaoFecharMesa =
+        document.getElementById("botaoFecharMesa");
+
+    // Verificar se os elementos existem.
+    if (!statusMesa || !valorMesa || !listaConsumo) {
+        console.error(
+            "Não foi possível exibir a mesa: elementos do HTML não encontrados."
+        );
+        return;
+    }
+
+    // Definir o status da mesa.
+    if (fechamentoPendenteAtual) {
+
+        statusMesa.textContent = "Pagamento";
+        statusMesa.style.color = "#d97706";
+
+        if (botaoFecharMesa) {
+            botaoFecharMesa.textContent =
+                "Confirmar Fechamento";
+        }
+
+    } else if (pedidosMesa.length === 0) {
+
+        statusMesa.textContent = "Livre";
+        statusMesa.style.color = "#268542";
+
+        if (botaoFecharMesa) {
+            botaoFecharMesa.textContent =
+                "💰 Fechar mesa";
+        }
+
+        valorMesa.textContent = "R$ 0,00";
+
+        listaConsumo.innerHTML = `
+            <p class="mesa-vazia">
+                Nenhum item lançado nesta mesa.
+            </p>
+        `;
+
+        return;
+
+    } else {
+
+        statusMesa.textContent = "Ocupada";
+        statusMesa.style.color = "#245d88";
+
+        if (botaoFecharMesa) {
+            botaoFecharMesa.textContent =
+                "💰 Fechar mesa";
+        }
+    }
+
+    // Agrupar os itens iguais.
+    const itensAcumulados = {};
+
+    pedidosMesa.forEach(pedido => {
+
+        const itens = Array.isArray(pedido.itens)
+            ? pedido.itens
+            : [];
+
+        itens.forEach(item => {
+
+            const id = String(item.id);
+            const preco = Number(item.preco || 0);
+            const quantidade = Number(item.quantidade || 0);
+
+            if (quantidade <= 0) {
+                return;
+            }
+
+            if (!itensAcumulados[id]) {
+                itensAcumulados[id] = {
+                    id: item.id,
+                    nome: item.nome || "Item sem nome",
+                    preco: preco,
+                    quantidade: 0
+                };
+            }
+
+            itensAcumulados[id].quantidade += quantidade;
+        });
+    });
+
+    // Atualizar o total.
+    valorMesa.textContent =
+        "R$ " + calcularTotalMesa().toFixed(2);
+
+    // Renderizar a lista de consumo.
+    listaConsumo.innerHTML = "";
+
+    Object.values(itensAcumulados).forEach(item => {
+
+        const subtotal = item.preco * item.quantidade;
+        const div = document.createElement("div");
+
+        div.className = "item-consumo";
+
+        div.innerHTML = `
+            <div>
+                <strong></strong>
+                <small></small>
+            </div>
+
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+            ">
+                <button
+                    type="button"
+                    class="btn-diminuir-consumo"
+                    style="
+                        width:38px;
+                        height:38px;
+                        border:none;
+                        border-radius:8px;
+                        font-size:22px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    "
+                >−</button>
+
+                <strong style="
+                    min-width:30px;
+                    text-align:center;
+                    font-size:18px;
+                "></strong>
+
+                <button
+                    type="button"
+                    class="btn-aumentar-consumo"
+                    style="
+                        width:38px;
+                        height:38px;
+                        border:none;
+                        border-radius:8px;
+                        font-size:22px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    "
+                >+</button>
+
+                <strong style="
+                    min-width:85px;
+                    text-align:right;
+                "></strong>
+            </div>
+        `;
+
+        const textos = div.querySelectorAll("strong");
+        const detalhes = div.querySelectorAll("small");
+
+        textos[0].textContent = item.nome;
+        detalhes[0].textContent =
+            "R$ " + item.preco.toFixed(2) + " cada";
+
+        textos[1].textContent = item.quantidade;
+        textos[2].textContent =
+            "R$ " + subtotal.toFixed(2);
+
+        div.querySelector(
+            ".btn-diminuir-consumo"
+        ).addEventListener("click", () => {
+            alterarConsumo(item.id, -1);
+        });
+
+        div.querySelector(
+            ".btn-aumentar-consumo"
+        ).addEventListener("click", () => {
+            alterarConsumo(item.id, 1);
+        });
+
+        listaConsumo.appendChild(div);
+    });
+}
+
+
 
 /* =========================================
    ABRIR FECHAMENTO
