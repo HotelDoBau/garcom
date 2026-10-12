@@ -10,5 +10,13 @@
     "display": "standalone",
     "orientation": "any",
     "background_color": "#17212b",
-    "theme_color": "#17212b"
+    "theme_color": "#17212b",
+    "icons": [
+        {
+            "src": "./icone-app.png",
+            "sizes": "1024x1024",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
 }
