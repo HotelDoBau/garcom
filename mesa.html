@@ -2691,18 +2691,6 @@ if (fechamentoPendenteAtual) {
             return;
         }
 
-        const confirmarFinal =
-            confirm(
-                "A conta já foi impressa.\n\n" +
-                "Deseja confirmar o fechamento de " +
-                nomeLocal + " " +
-                String(numeroMesa).padStart(2, "0") +
-                " e liberar o atendimento?"
-            );
-
-        if (!confirmarFinal) {
-            return;
-        }
 
         // Buscar os pedidos deste atendimento.
         const referenciaPedidos =
@@ -2874,9 +2862,7 @@ if (fechamentoPendenteAtual) {
 
         fechamentoPendenteAtual = null;
 
-        alert(
-            "Fechamento confirmado. Atendimento liberado."
-        );
+        
 
         window.location.href = "index.html";
 
