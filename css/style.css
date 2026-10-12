@@ -2568,55 +2568,61 @@ button:disabled {
     }
 }
 
-/* =========================================
-   HOTEL DO BAÚ — CORES DAS MESAS POR STATUS
-========================================= */
 
-/* MESA LIVRE — VERDE */
+/* CORES MAIS VIBRANTES DAS MESAS */
+
+/* MESA LIVRE — VERDE BRILHANTE */
 .mesa.livre {
-    background: #1c4939;
-    border-color: #398563;
+    background: #176b43;
+    border-color: #39e58c;
+    box-shadow: 0 0 12px rgba(57, 229, 140, 0.22);
 }
 
 .mesa.livre strong,
 .mesa.livre span {
-    color: #a5e6c3;
+    color: #c0ffdc;
 }
 
-/* MESA OCUPADA — AZUL */
+.mesa.livre:hover {
+    background: #208653;
+    border-color: #65ffad;
+    box-shadow: 0 0 18px rgba(57, 229, 140, 0.38);
+}
+
+
+/* MESA OCUPADA — AZUL RADIANTE */
 .mesa.ocupada {
-    background: #203e68;
-    border-color: #477fbe;
+    background: #204f91;
+    border-color: #55a5ff;
+    box-shadow: 0 0 12px rgba(85, 165, 255, 0.22);
 }
 
 .mesa.ocupada strong,
 .mesa.ocupada span {
-    color: #b7d8ff;
+    color: #d1e7ff;
 }
 
-/* MESA EM PAGAMENTO — LARANJA */
+.mesa.ocupada:hover {
+    background: #2b65ad;
+    border-color: #83c0ff;
+    box-shadow: 0 0 18px rgba(85, 165, 255, 0.38);
+}
+
+
+/* AGUARDANDO PAGAMENTO — LARANJA INTENSO */
 .mesa.pagamento {
-    background: #59391e;
-    border-color: #c8873b;
+    background: #80420f;
+    border-color: #ffad42;
+    box-shadow: 0 0 12px rgba(255, 173, 66, 0.24);
 }
 
 .mesa.pagamento strong,
 .mesa.pagamento span {
-    color: #ffd09a;
-}
-
-/* EFEITO AO PASSAR O MOUSE */
-.mesa.livre:hover {
-    background: #245943;
-    border-color: #56ad81;
-}
-
-.mesa.ocupada:hover {
-    background: #294c7d;
-    border-color: #6398d3;
+    color: #ffe1b3;
 }
 
 .mesa.pagamento:hover {
-    background: #704724;
-    border-color: #e5a454;
+    background: #a95615;
+    border-color: #ffc36f;
+    box-shadow: 0 0 18px rgba(255, 173, 66, 0.4);
 }
