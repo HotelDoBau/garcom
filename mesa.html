@@ -1416,73 +1416,60 @@ function fecharMesa() {
 }
 
 
+
 /* =========================================
    ATUALIZAR TOTAL COM DESCONTO
 ========================================= */
 
-document.addEventListener(
-    "input",
-    function(evento) {
+function atualizarTotalFechamento() {
 
+    const campoDesconto =
+        document.getElementById("descontoFechamento");
 
-        if (
-            evento.target.id !==
-            "descontoFechamento"
-        ) {
+    const campoTotal =
+        document.getElementById("totalFechamento");
 
-            return;
-
-        }
-
-
-        let valor =
-            evento.target.value;
-
-
-        valor =
-            valor
-                .replace(/\./g, "")
-                .replace(",", ".");
-
-
-        let desconto =
-            Number(valor);
-
-
-        if (
-            isNaN(desconto) ||
-            desconto < 0
-        ) {
-
-            desconto = 0;
-
-        }
-
-
-        if (
-            desconto >
-            totalFechamentoAtual
-        ) {
-
-            desconto =
-                totalFechamentoAtual;
-
-        }
-
-
-        const totalFinal =
-            totalFechamentoAtual -
-            desconto;
-
-
-        document.getElementById(
-            "totalFechamento"
-        ).textContent =
-
-            "R$ " +
-            totalFinal.toFixed(2);
-
+    if (!campoDesconto || !campoTotal) {
+        return;
     }
+
+    let valor = campoDesconto.value.trim();
+
+    // Aceitar valores no formato brasileiro
+    // (20,50 ou 1.200,50) e decimal com ponto (20.50).
+    if (valor.includes(",")) {
+        valor = valor
+            .replace(/\./g, "")
+            .replace(",", ".");
+    }
+
+    let desconto = valor === "" ? 0 : Number(valor);
+
+    if (!Number.isFinite(desconto) || desconto < 0) {
+        desconto = 0;
+    }
+
+    desconto = Math.min(desconto, totalFechamentoAtual);
+
+    const totalFinal = Number(
+        (totalFechamentoAtual - desconto).toFixed(2)
+    );
+
+    campoTotal.textContent =
+        "R$ " + totalFinal.toLocaleString(
+            "pt-BR",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+}
+
+document.getElementById(
+    "descontoFechamento"
+).addEventListener(
+    "input",
+    atualizarTotalFechamento
 );
 
 
