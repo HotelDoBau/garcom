@@ -458,31 +458,99 @@ const categorias = [
 ];
 
 
+
 const iconesCategoria = {
 
-    "Cafeteria": "☕",
+    "Cafeteria": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z"/>
+            <path d="M17 10h2a2 2 0 0 1 0 4h-2"/>
+            <path d="M8 5c-1-1 1-2 0-3"/>
+            <path d="M12 5c-1-1 1-2 0-3"/>
+        </svg>
+    `,
 
-    "Salgados": "🥐",
+    "Salgados": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 16 7 7a3 3 0 0 1 5-1l9 10a2 2 0 0 1-2 3H5a2 2 0 0 1-2-3Z"/>
+            <path d="m8 9 2 2m2-5 2 3m1 2 2 2"/>
+        </svg>
+    `,
 
-    "Lanches": "🥪",
+    "Lanches": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 10a8 8 0 0 1 16 0H4Z"/>
+            <path d="M4 13h16l-2 4H6l-2-4Z"/>
+            <path d="M5 19h14"/>
+            <path d="m8 8 .1.1m4-2 .1.1m4 2 .1.1"/>
+        </svg>
+    `,
 
-    "Pratos Feitos": "🍽️",
+    "Pratos Feitos": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="5.5"/>
+            <path d="M3 4v5m2-5v5M4 9v11M21 4v16"/>
+        </svg>
+    `,
 
-    "Bebidas": "🥤",
+    "Bebidas": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h10l-1 18H8L7 3Z"/>
+            <path d="M7.5 8h9"/>
+            <path d="M10 12h4"/>
+        </svg>
+    `,
 
-    "Cervejas e Vinhos": "🍺",
+    "Cervejas e Vinhos": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 3h8v5a4 4 0 0 1-8 0V3Z"/>
+            <path d="M12 12v8m-4 1h8"/>
+            <path d="M8 6h8"/>
+        </svg>
+    `,
 
-    "Adicionais": "➕",
+    "Adicionais": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7v10M7 12h10"/>
+        </svg>
+    `,
 
-    "Doces": "🍰",
+    "Doces": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 14h16l-2 6H6l-2-6Z"/>
+            <path d="M4 14a4 4 0 0 1 4-4 4 4 0 0 1 8 0 4 4 0 0 1 4 4"/>
+            <path d="M12 5v2"/>
+        </svg>
+    `,
 
-    "Petiscos": "🍟",
+    "Petiscos": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 5h16l-2 15H6L4 5Z"/>
+            <path d="M8 9v7m4-7v7m4-7v7"/>
+            <path d="M3 5h18"/>
+        </svg>
+    `,
 
-    "Drinks": "🍹",
+    "Drinks": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 4h16l-7 9v6h-2v-6L4 4Z"/>
+            <path d="M8 8h8"/>
+            <path d="M9 22h6"/>
+            <path d="m16 2 3 3"/>
+        </svg>
+    `,
 
-    "Outros": "•"
+    "Outros": `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 11v5m0-8h.01"/>
+        </svg>
+    `
 
 };
+
 
 
 categorias.forEach(
@@ -538,27 +606,30 @@ categorias.forEach(
             "categoria-produto";
 
 
-        titulo.innerHTML = `
+      
+titulo.innerHTML = `
 
-            <span>
+    <span class="categoria-identidade">
 
-                ${
-                    iconesCategoria[
-                        categoria
-                    ] || "🍴"
-                }
+        <span class="icone-categoria">
+            ${
+                iconesCategoria[categoria] ||
+                iconesCategoria["Outros"]
+            }
+        </span>
 
-                ${categoria}
+        <span class="nome-categoria">
+            ${categoria}
+        </span>
 
-            </span>
+    </span>
 
-            <span
-                class="seta-categoria"
-            >
-                ▼
-            </span>
+    <span class="seta-categoria">
+        ▼
+    </span>
 
-        `;
+`;
+
 
 
         const conteudo =
