@@ -538,170 +538,173 @@ if (
         }
 
        
-        // ===========================
-        // BUSCAR E ALTERAR PEDIDO
-        // COM TRANSAÇÃO DO FIRESTORE
-        // ===========================
 
-        const referenciaMesa =
-            collection(
-                db,
-                "mesas",
-                obterIdMesa(),
-                "pedidos"
+// ===========================
+// BUSCAR E ALTERAR PEDIDO
+// COM TRANSAÇÃO DO FIRESTORE
+// ===========================
+
+const referenciaMesa = collection(
+    db,
+    "mesas",
+    obterIdMesa(),
+    "pedidos"
+);
+
+let nomeItemAlterado = "";
+let quantidadeAnterior = 0;
+let quantidadeNova = 0;
+let precoItemAlterado = 0;
+let removeuCompletamente = false;
+let alterado = false;
+
+// Buscar os pedidos antes da transação.
+// A leitura da coleção não pode ser feita com
+// transaction.get().
+const snapshotPedidos = await getDocs(
+    referenciaMesa
+);
+
+const referenciasPedidos = [
+    ...snapshotPedidos.docs
+].reverse().map(documento => documento.ref);
+
+const resultadoTransacao = await runTransaction(
+    db,
+    async (transaction) => {
+
+        // Verificar o status atual da mesa.
+        const mesaAtual = await transaction.get(
+            referenciaDocumentoMesa
+        );
+
+        if (
+            mesaAtual.exists() &&
+            String(
+                mesaAtual.data().status || ""
+            ).toLowerCase() === "pagamento"
+        ) {
+            return {
+                status: "pagamento"
+            };
+        }
+
+        // Ler os documentos individualmente
+        // dentro da transação.
+        const documentos = [];
+
+        for (const referencia of referenciasPedidos) {
+            const documento = await transaction.get(
+                referencia
             );
 
-        let nomeItemAlterado = "";
-        let quantidadeAnterior = 0;
-        let quantidadeNova = 0;
-        let precoItemAlterado = 0;
-        let removeuCompletamente = false;
-        let alterado = false;
+            if (documento.exists()) {
+                documentos.push(documento);
+            }
+        }
 
-        const resultadoTransacao =
-            await runTransaction(
-                db,
-                async (transaction) => {
+        // Procurar o item no pedido mais recente.
+        for (
+            let i = documentos.length - 1;
+            i >= 0;
+            i--
+        ) {
 
-                    // Verificar o status atual da mesa.
-                    const mesaAtual =
-                        await transaction.get(
-                            referenciaDocumentoMesa
-                        );
+            const registro = documentos[i];
+            const dadosPedido = registro.data();
 
-                    if (
-                        mesaAtual.exists() &&
-                        String(
-                            mesaAtual.data().status || ""
-                        ).toLowerCase() === "pagamento"
-                    ) {
-                        return {
-                            status: "pagamento"
-                        };
-                    }
+            const itens = Array.isArray(dadosPedido.itens)
+                ? [...dadosPedido.itens]
+                : [];
 
-                    // Buscar os pedidos dentro da transação.
-                    const snapshot =
-                        await transaction.get(
-                            referenciaMesa
-                        );
+            const indice = itens.findIndex(item =>
+                String(item.id) === String(idProduto) &&
+                Number(item.quantidade || 0) > 0
+            );
 
-                    const documentos =
-                        [...snapshot.docs].reverse();
+            if (indice === -1) {
+                continue;
+            }
 
-                    // Localizar o item no pedido mais recente.
-                    for (const registro of documentos) {
+            const item = { ...itens[indice] };
 
-                        const dadosPedido =
-                            registro.data();
+            const nome = item.nome || "Item sem nome";
+            const preco = Number(item.preco || 0);
+            const anterior = Number(item.quantidade || 0);
 
-                        const itens =
-                            Array.isArray(dadosPedido.itens)
-                                ? [...dadosPedido.itens]
-                                : [];
+            let nova = anterior;
+            let removeu = false;
 
-                        const indice =
-                            itens.findIndex(item =>
-                                String(item.id) ===
-                                    String(idProduto) &&
-                                Number(item.quantidade || 0) > 0
-                            );
+            if (variacao === 1) {
 
-                        if (indice === -1) {
-                            continue;
-                        }
+                nova = anterior + 1;
 
-                        const item = itens[indice];
+                item.quantidade = nova;
+                item.subtotal = Number(
+                    (preco * nova).toFixed(2)
+                );
 
-                        const nome =
-                            item.nome || "Item sem nome";
+                itens[indice] = item;
 
-                        const preco =
-                            Number(item.preco || 0);
+            } else {
 
-                        const anterior =
-                            Number(item.quantidade || 0);
+                nova = anterior - 1;
 
-                        let nova = anterior;
-                        let removeu = false;
+                if (nova <= 0) {
 
-                        if (variacao === 1) {
+                    itens.splice(indice, 1);
+                    removeu = true;
 
-                            nova = anterior + 1;
+                } else {
 
-                            item.quantidade = nova;
+                    item.quantidade = nova;
+                    item.subtotal = Number(
+                        (preco * nova).toFixed(2)
+                    );
 
-                            item.subtotal =
-                                preco * nova;
-
-                        } else if (variacao === -1) {
-
-                            nova = anterior - 1;
-
-                            if (nova <= 0) {
-
-                                itens.splice(indice, 1);
-
-                                removeu = true;
-
-                            } else {
-
-                                item.quantidade = nova;
-
-                                item.subtotal =
-                                    preco * nova;
-
-                            }
-                        }
-
-                        const novoTotal =
-                            itens.reduce(
-                                (soma, itemAtual) => {
-
-                                    return soma +
-                                        Number(itemAtual.preco || 0) *
-                                        Number(itemAtual.quantidade || 0);
-
-                                },
-                                0
-                            );
-
-                        // Registrar a alteração na transação.
-                        if (itens.length === 0) {
-
-                            transaction.delete(
-                                registro.ref
-                            );
-
-                        } else {
-
-                            transaction.update(
-                                registro.ref,
-                                {
-                                    itens: itens,
-                                    total: Number(
-                                        novoTotal.toFixed(2)
-                                    )
-                                }
-                            );
-
-                        }
-
-                        return {
-                            status: "alterado",
-                            nome: nome,
-                            anterior: anterior,
-                            nova: nova,
-                            preco: preco,
-                            removeu: removeu
-                        };
-                    }
-
-                    return {
-                        status: "nao-encontrado"
-                    };
+                    itens[indice] = item;
                 }
+            }
+
+            const novoTotal = itens.reduce(
+                (soma, itemAtual) =>
+                    soma +
+                    Number(itemAtual.preco || 0) *
+                    Number(itemAtual.quantidade || 0),
+                0
             );
+
+            if (itens.length === 0) {
+
+                transaction.delete(registro.ref);
+
+            } else {
+
+                transaction.update(
+                    registro.ref,
+                    {
+                        itens: itens,
+                        total: Number(novoTotal.toFixed(2))
+                    }
+                );
+            }
+
+            return {
+                status: "alterado",
+                nome: nome,
+                anterior: anterior,
+                nova: nova,
+                preco: preco,
+                removeu: removeu
+            };
+        }
+
+        return {
+            status: "nao-encontrado"
+        };
+    }
+);
+
 
         // ===========================
         // TRATAR RESULTADO
