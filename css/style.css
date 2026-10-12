@@ -431,8 +431,10 @@ main {
    CARDS DOS PRODUTOS
 ========================= */
 
+
 .produto-card {
     background: #fff;
+    border: 1px solid #258bff;
     border-radius: 16px;
     margin-bottom: 12px;
     padding: 10px;
@@ -442,7 +444,23 @@ main {
     align-items: center;
     gap: 12px;
 
-    box-shadow: 0 3px 12px rgba(0, 0, 0, .08);
+    box-shadow:
+        0 0 5px rgba(37, 139, 255, 0.45),
+        0 0 12px rgba(37, 139, 255, 0.18),
+        0 3px 12px rgba(0, 0, 0, 0.08);
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.produto-card:hover {
+    border-color: #006eff;
+
+    box-shadow:
+        0 0 7px rgba(0, 110, 255, 0.65),
+        0 0 16px rgba(0, 110, 255, 0.25),
+        0 4px 14px rgba(0, 0, 0, 0.10);
 }
 
 
@@ -463,11 +481,20 @@ main {
     min-width: 0;
 }
 
+
 .produto-info h3 {
     margin: 0 0 6px;
-    font-size: 15px;
-    line-height: 1.25;
+    font-size: 18px;
+    line-height: 1.3;
+    font-weight: 800;
+    color: #17212b;
+
+    -webkit-text-stroke: 0.35px #000;
+    text-shadow:
+        0.4px 0 #000,
+        -0.4px 0 #000;
 }
+
 
 .produto-info p {
     margin: 0;
