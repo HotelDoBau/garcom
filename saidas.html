@@ -234,42 +234,60 @@
        BOTÕES DA VENDA
     ========================================= */
 
-    .venda-botoes {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-    }
+   
+.btn-ver-comanda,
+.btn-excluir-venda {
+    border: 1px solid transparent;
+    border-radius: 9px;
+    padding: 10px 14px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
 
 
-    .btn-ver-comanda,
-    .btn-excluir-venda {
-        border: none;
-        border-radius: 8px;
-        padding: 10px 14px;
-        color: white;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-    }
+.btn-ver-comanda {
+    background: #15569a;
+    border-color: #258bff;
+
+    box-shadow:
+        0 0 5px rgba(37, 139, 255, 0.35);
+}
 
 
-    .btn-ver-comanda {
-        background: #245d88;
-    }
+.btn-excluir-venda {
+    background: #b42318;
+    border-color: #ff6259;
+
+    box-shadow:
+        0 0 5px rgba(255, 65, 65, 0.25);
+}
 
 
-    .btn-excluir-venda {
-        background: #b42318;
-    }
+.btn-ver-comanda:hover {
+    background: #1d6bb8;
+
+    box-shadow:
+        0 0 8px rgba(37, 139, 255, 0.65);
+
+    transform: translateY(-1px);
+}
 
 
-    .btn-ver-comanda:hover,
-    .btn-excluir-venda:hover {
-        opacity: 0.88;
-    }
+.btn-excluir-venda:hover {
+    background: #d12b20;
 
+    box-shadow:
+        0 0 8px rgba(255, 65, 65, 0.45);
+
+    transform: translateY(-1px);
+}
 
     /* =========================================
        MENSAGEM
