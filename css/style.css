@@ -349,11 +349,12 @@ main {
    CATEGORIAS
 ========================= */
 
+
 .categoria-produto {
     width: 100%;
-    border: none;
-    background: white;
-    color: #245d88;
+    border: 1px solid #347fc0;
+    background: #15569a;
+    color: #ffffff;
 
     padding: 18px 16px;
 
@@ -366,9 +367,33 @@ main {
     font-weight: 700;
 
     text-align: left;
+    text-shadow:
+        -1px -1px 0 #111,
+         1px -1px 0 #111,
+        -1px  1px 0 #111,
+         1px  1px 0 #111;
 
     cursor: pointer;
     margin: 0;
+
+    transition:
+        background-color .2s ease,
+        border-color .2s ease;
+}
+
+.categoria-produto:hover {
+    background: #1d6bb8;
+    border-color: #65adf2;
+}
+
+.categoria-produto.ativo {
+    background: #10477f;
+    border-color: #65adf2;
+}
+
+.categoria-produto .seta-categoria {
+    color: #ffffff;
+    text-shadow: 1px 1px 2px #111;
 }
 
 .grupo-categoria {
