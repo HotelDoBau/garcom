@@ -3208,12 +3208,32 @@ window.fecharMenu =
 
 
 
+
 <script
     type="module"
     src="js/impressao.js"
 ></script>
 
+<script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("./service-worker.js")
+                .then(registro => {
+                    console.log(
+                        "PWA: service worker registrado.",
+                        registro.scope
+                    );
+                })
+                .catch(erro => {
+                    console.error(
+                        "PWA: erro ao registrar service worker:",
+                        erro
+                    );
+                });
+        });
+    }
+</script>
 
 </body>
-
 </html>
+
