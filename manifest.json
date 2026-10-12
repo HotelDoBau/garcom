@@ -1,0 +1,14 @@
+
+{
+    "id": "./index.html",
+    "name": "Hotel do Baú - Comandas",
+    "short_name": "Comandas",
+    "description": "Sistema de comandas do Hotel do Baú",
+    "lang": "pt-BR",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#17212b",
+    "theme_color": "#17212b"
+}
