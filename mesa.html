@@ -56,13 +56,1017 @@
 
         <div class="linha-resumo">
 
-            <span>
-                Consumo atual
-            </span>
+            <span id="rotuloValorMesa">Consumo atual</span>
+<strong id="valorMesa">R$ 0,00</strong>
+</div>
 
-            <strong id="valorMesa">
-                R$ 0,00
-            </strong>
+<div class="linha-resumo" id="descontoResumoMesa" style="display: none;">
+    <span>Desconto</span>
+    <strong id="valorDescontoMesa">R$ 0,00</strong></div>
+
+
+    </section>
+
+
+    <section class="acoes-mesa">
+
+
+        <button
+            class="btn-pedido"
+            onclick="novoPedido()"
+        >
+
+            ➕ Novo pedido
+
+        </button>
+
+
+        <button
+            class="btn-consumo"
+            onclick="verConsumo()"
+        >
+
+            🧾 Ver consumo
+
+        </button>
+
+
+        
+
+<button
+    class="btn-fechar"
+    id="botaoFecharMesa"
+    onclick="fecharMesa()"
+>
+    💰 Fechar mesa
+</button>
+
+
+
+
+    </section>
+
+
+    <section
+        class="consumo-mesa"
+        id="consumoMesa"
+    >
+
+        <h2>
+            Consumo da mesa
+        </h2>
+
+
+        <div id="listaConsumo">
+
+            <p class="mesa-vazia">
+                Nenhum item lançado nesta mesa.
+            </p>
+
+        </div>
+
+
+    </section>
+
+
+    <button
+        class="btn-voltar"
+        onclick="voltarMesas()"
+    >
+
+        ← Voltar para mesas
+
+    </button>
+
+
+</main>
+
+
+<!-- ========================================= -->
+<!-- MODAL DE FECHAMENTO -->
+<!-- ========================================= -->
+
+<section
+    id="modalFechamento"
+    class="modal-fechamento"
+>
+
+    <div class="caixa-fechamento">
+
+
+        <h2>
+            💰 Fechamento
+        </h2>
+
+
+        <div class="resumo-fechamento">
+
+
+            <div>
+
+                <span>
+                    Consumo
+                </span>
+
+                <strong id="subtotalFechamento">
+                    R$ 0,00
+                </strong>
+
+            </div>
+
+
+            <div class="campo-desconto">
+
+                <label for="descontoFechamento">
+                    Desconto
+                </label>
+
+
+                <div class="campo-valor">
+
+                    <span>
+                        R$
+                    </span>
+
+                    <input
+                        type="text"
+                        id="descontoFechamento"
+                        inputmode="decimal"
+                        placeholder="0,00"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="linha-total-fechamento">
+
+                <span>
+                    Total a pagar
+                </span>
+
+                <strong id="totalFechamento">
+                    R$ 0,00
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="acoes-fechamento">
+
+
+            <button
+                class="btn-voltar"
+                onclick="cancelarFechamento()"
+            >
+
+                ← Cancelar
+
+            </button>
+
+
+            <button
+                class="btn-fechar"
+                onclick="confirmarFechamento()"
+            >
+
+                ✅ Confirmar fechamento
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+<script
+    type="module"
+    src="js/firebase.js?v=3"
+></script>
+
+
+<script>
+
+
+const numeroMesa =
+    localStorage.getItem(
+        "mesaSelecionada"
+    );
+
+
+const tipoSelecionado =
+    localStorage.getItem(
+        "tipoSelecionado"
+    ) || "mesa";
+
+
+const ehQuarto =
+    tipoSelecionado === "quarto";
+
+
+const nomeLocal =
+    ehQuarto
+        ? "Quarto"
+        : "Mesa";
+
+
+const prefixoLocal =
+    ehQuarto
+        ? "quarto_"
+        : "mesa_";
+
+
+if (!numeroMesa) {
+
+    window.location.href =
+        "index.html";
+
+}
+
+
+document.getElementById(
+    "tituloMesa"
+).textContent =
+
+    nomeLocal +
+    " " +
+    String(numeroMesa)
+        .padStart(2, "0");
+
+
+let pedidosMesa = [];
+
+let totalFechamentoAtual = 0;
+
+let fechamentoPendenteAtual = null;
+    
+/* =========================================
+   AGUARDAR FIREBASE
+========================================= */
+
+async function aguardarFirebase() {
+
+    let tentativas = 0;
+
+
+    while (
+        !window.firebaseHotel &&
+        tentativas < 50
+    ) {
+
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    100
+                )
+        );
+
+        tentativas++;
+
+    }
+
+
+    return !!window.firebaseHotel;
+
+}
+
+
+/* =========================================
+   ID DA MESA
+========================================= */
+function obterIdMesa() {
+
+    return (
+
+        prefixoLocal +
+
+        String(numeroMesa)
+            .padStart(2, "0")
+
+    );
+
+}
+
+    
+async function aguardarAutenticacaoFirebase() {
+    const conectado = await aguardarFirebase();
+
+    if (!conectado) {
+        throw new Error("Firebase indisponível.");
+    }
+
+    const { auth, onAuthStateChanged } = window.firebaseHotel;
+
+    if (!auth || !onAuthStateChanged) {
+        throw new Error("Autenticação do Firebase indisponível.");
+    }
+
+    if (auth.currentUser) {
+        return auth.currentUser;
+    }
+
+    return await new Promise((resolve, reject) => {
+        let unsubscribe;
+
+        unsubscribe = onAuthStateChanged(
+            auth,
+            usuario => {
+                unsubscribe();
+
+                if (usuario) {
+                    resolve(usuario);
+                } else {
+                    reject(
+                        new Error(
+                            "Nenhum usuário autenticado no Firebase."
+                        )
+                    );
+                }
+            },
+            erro => {
+                if (unsubscribe) unsubscribe();
+                reject(erro);
+            }
+        );
+    });
+}
+
+
+
+
+
+
+/* =========================================
+   ALTERAR CONSUMO + AUDITORIA
+========================================= */
+
+async function alterarConsumo(
+    idProduto,
+    variacao
+) {
+
+    if (
+        variacao !== 1 &&
+        variacao !== -1
+    ) {
+        return;
+    }
+
+    
+    if (fechamentoPendenteAtual) {
+        alert(
+            "Não é possível alterar o consumo enquanto houver um fechamento pendente. Aguarde a conclusão ou solicite a correção do fechamento."
+        );
+
+        return;
+    }
+
+
+   let usuarioFirebase;
+
+try {
+
+    usuarioFirebase =
+        await aguardarAutenticacaoFirebase();
+
+} catch (erroAutenticacao) {
+
+    console.error(
+        "Erro ao confirmar autenticação:",
+        erroAutenticacao
+    );
+
+    alert(
+        "Não foi possível confirmar sua autenticação no Firebase. Verifique seu acesso e tente novamente."
+    );
+
+    return;
+
+}
+
+try {
+        const {
+    db,
+    collection,
+    getDocs,
+    getDoc,
+    runTransaction,        
+    doc,
+    updateDoc,
+    deleteDoc,
+    addDoc,
+    serverTimestamp
+} = window.firebaseHotel;
+
+    const referenciaDocumentoMesa = doc(
+    db,
+    "mesas",
+    obterIdMesa()
+);
+
+const documentoMesa = await getDoc(
+    referenciaDocumentoMesa
+);
+
+if (
+    documentoMesa.exists() &&
+    String(
+        documentoMesa.data().status || ""
+    ).toLowerCase() === "pagamento"
+) {
+    alert(
+        "Esta mesa está em processo de fechamento. Não é possível alterar o consumo."
+    );
+
+    return;
+}
+
+        // ===========================
+        // IDENTIFICAR GARÇOM
+        // ===========================
+
+        let garcomNome = "Não informado";
+        let garcomUid = usuarioFirebase.uid;
+        let usuarioTipo = "garcom";
+
+        try {
+
+            let usuarioSalvo =
+                localStorage.getItem("usuarioLogado");
+
+            if (!usuarioSalvo) {
+                usuarioSalvo =
+                    localStorage.getItem("garcomLogado");
+            }
+
+            if (usuarioSalvo) {
+
+                const usuario =
+                    JSON.parse(usuarioSalvo);
+
+                garcomNome =
+                    usuario.nome ||
+                    usuario.nomeGarcom ||
+                    usuario.usuario ||
+                    "Não informado";
+
+               garcomUid =
+    usuario.uid || usuarioFirebase.uid;
+
+                usuarioTipo =
+                    usuario.tipo || "garcom";
+            }
+
+        } catch (erro) {
+
+            console.error(
+                "Erro ao identificar garçom na auditoria:",
+                erro
+            );
+
+        }
+
+       
+
+// ===========================
+// BUSCAR E ALTERAR PEDIDO
+// COM TRANSAÇÃO DO FIRESTORE
+// ===========================
+
+const referenciaMesa = collection(
+    db,
+    "mesas",
+    obterIdMesa(),
+    "pedidos"
+);
+
+let nomeItemAlterado = "";
+let quantidadeAnterior = 0;
+let quantidadeNova = 0;
+let precoItemAlterado = 0;
+let removeuCompletamente = false;
+let alterado = false;
+
+// Buscar os pedidos antes da transação.
+// A leitura da coleção não pode ser feita com
+// transaction.get().
+const snapshotPedidos = await getDocs(
+    referenciaMesa
+);
+
+const referenciasPedidos = [
+    ...snapshotPedidos.docs
+].reverse().map(documento => documento.ref);
+
+const resultadoTransacao = await runTransaction(
+    db,
+    async (transaction) => {
+
+        // Verificar o status atual da mesa.
+        const mesaAtual = await transaction.get(
+            referenciaDocumentoMesa
+        );
+
+        if (
+            mesaAtual.exists() &&
+            String(
+                mesaAtual.data().status || ""
+            ).toLowerCase() === "pagamento"
+        ) {
+            return {
+                status: "pagamento"
+            };
+        }
+
+        // Ler os documentos individualmente
+        // dentro da transação.
+        const documentos = [];
+
+        for (const referencia of referenciasPedidos) {
+            const documento = await transaction.get(
+                referencia
+            );
+
+            if (documento.exists()) {
+                documentos.push(documento);
+            }
+        }
+
+        // Procurar o item no pedido mais recente.
+        for (
+            let i = documentos.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            const registro = documentos[i];
+            const dadosPedido = registro.data();
+
+            const itens = Array.isArray(dadosPedido.itens)
+                ? [...dadosPedido.itens]
+                : [];
+
+            const indice = itens.findIndex(item =>
+                String(item.id) === String(idProduto) &&
+                Number(item.quantidade || 0) > 0
+            );
+
+            if (indice === -1) {
+                continue;
+            }
+
+            const item = { ...itens[indice] };
+
+            const nome = item.nome || "Item sem nome";
+            const preco = Number(item.preco || 0);
+            const anterior = Number(item.quantidade || 0);
+
+            let nova = anterior;
+            let removeu = false;
+
+            if (variacao === 1) {
+
+                nova = anterior + 1;
+
+                item.quantidade = nova;
+                item.subtotal = Number(
+                    (preco * nova).toFixed(2)
+                );
+
+                itens[indice] = item;
+
+            } else {
+
+                nova = anterior - 1;
+
+                if (nova <= 0) {
+
+                    itens.splice(indice, 1);
+                    removeu = true;
+
+                } else {
+
+                    item.quantidade = nova;
+                    item.subtotal = Number(
+                        (preco * nova).toFixed(2)
+                    );
+
+                    itens[indice] = item;
+                }
+            }
+
+            const novoTotal = itens.reduce(
+                (soma, itemAtual) =>
+                    soma +
+                    Number(itemAtual.preco || 0) *
+                    Number(itemAtual.quantidade || 0),
+                0
+            );
+
+            if (itens.length === 0) {
+
+                transaction.delete(registro.ref);
+
+            } else {
+
+                transaction.update(
+                    registro.ref,
+                    {
+                        itens: itens,
+                        total: Number(novoTotal.toFixed(2))
+                    }
+                );
+            }
+
+            return {
+                status: "alterado",
+                nome: nome,
+                anterior: anterior,
+                nova: nova,
+                preco: preco,
+                removeu: removeu
+            };
+        }
+
+        return {
+            status: "nao-encontrado"
+        };
+    }
+);
+
+
+        // ===========================
+        // TRATAR RESULTADO
+        // FORA DA TRANSAÇÃO
+        // ===========================
+
+        if (
+            resultadoTransacao.status === "pagamento"
+        ) {
+
+            alert(
+                "Esta mesa está em processo de fechamento. Não é possível alterar o consumo."
+            );
+
+            return;
+
+        }
+
+        if (
+            resultadoTransacao.status === "nao-encontrado"
+        ) {
+
+            alert(
+                "Não foi possível localizar este item na comanda."
+            );
+
+            return;
+
+        }
+
+        nomeItemAlterado =
+            resultadoTransacao.nome;
+
+        quantidadeAnterior =
+            resultadoTransacao.anterior;
+
+        quantidadeNova =
+            resultadoTransacao.nova;
+
+        precoItemAlterado =
+            resultadoTransacao.preco;
+
+        removeuCompletamente =
+            resultadoTransacao.removeu;
+
+        alterado = true;
+
+        if (!alterado) {
+
+            alert(
+                "Não foi possível alterar o consumo."
+            );
+
+            return;
+
+        }
+
+        // ===========================
+        // REGISTRAR AUDITORIA
+        // ===========================
+
+        let acao = "";
+        let descricao = "";
+
+        if (variacao === 1) {
+
+            acao = "Aumentou item";
+
+            descricao =
+                "Aumentou " +
+                nomeItemAlterado +
+                " de " +
+                quantidadeAnterior +
+                " para " +
+                quantidadeNova +
+                " unidade(s) na " +
+                nomeLocal.toLowerCase() +
+                " " +
+                String(numeroMesa).padStart(2, "0") +
+                ".";
+
+        } else if (removeuCompletamente) {
+
+            acao = "Removeu item";
+
+            descricao =
+                "Removeu " +
+                nomeItemAlterado +
+                " da " +
+                nomeLocal.toLowerCase() +
+                " " +
+                String(numeroMesa).padStart(2, "0") +
+                ". A quantidade passou de " +
+                quantidadeAnterior +
+                " para 0.";
+
+        } else {
+
+            acao = "Diminuiu item";
+
+            descricao =
+                "Diminuiu " +
+                nomeItemAlterado +
+                " de " +
+                quantidadeAnterior +
+                " para " +
+                quantidadeNova +
+                " unidade(s) na " +
+                nomeLocal.toLowerCase() +
+                " " +
+                String(numeroMesa).padStart(2, "0") +
+                ".";
+
+        }
+
+        try {
+
+            await addDoc(
+                collection(db, "auditoria_pedidos"),
+                {
+                    acao: acao,
+                    descricao: descricao,
+
+                    garcomNome: garcomNome,
+                    garcomUid: garcomUid,
+                    usuarioTipo: usuarioTipo,
+
+                    local:
+                        nomeLocal +
+                        " " +
+                        String(numeroMesa).padStart(2, "0"),
+
+                    tipoLocal: tipoSelecionado,
+                    numeroLocal: Number(numeroMesa),
+                    comanda: "",
+
+                    itemNome: nomeItemAlterado,
+
+                    quantidade: Math.abs(
+                        quantidadeNova - quantidadeAnterior
+                    ),
+
+                    quantidadeAnterior: quantidadeAnterior,
+                    quantidadeNova: quantidadeNova,
+
+                   valorAlteracao:
+    Number(
+        (
+            variacao *
+            precoItemAlterado
+        ).toFixed(2)
+    ),
+
+                    observacao:
+                        "Alteração realizada na tela Ver consumo.",
+
+                    criadoEm: serverTimestamp()
+                }
+            );
+
+            console.log(
+                "Auditoria registrada:",
+                acao,
+                nomeItemAlterado
+            );
+
+        } catch (erroAuditoria) {
+
+            console.error(
+                "Erro ao registrar auditoria do consumo:",
+                erroAuditoria
+            );
+
+            alert(
+                "O consumo foi alterado, mas não foi possível registrar a auditoria. Verifique a conexão e as permissões do Firebase."
+            );
+
+        }
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao alterar consumo:",
+            erro
+        );
+
+        alert(
+            "Não foi possível alterar o consumo.\n\n" +
+            (erro.code || "sem código") +
+            "\n\n" +
+            (erro.message || erro)
+        );
+
+    }
+
+}
+
+/* =========================================
+   ESCUTAR PEDIDOS DA MESA
+========================================= */
+
+async function iniciarMesa() {
+
+
+   let usuarioFirebase;
+
+try {
+
+    usuarioFirebase =
+        await aguardarAutenticacaoFirebase();
+
+
+} catch (erroAutenticacao) {
+
+    console.error(
+        "Erro ao confirmar autenticação no fechamento:",
+        erroAutenticacao
+    );
+
+    alert(
+        "Não foi possível confirmar sua autenticação no Firebase. Tente novamente."
+    );
+
+    window.fechamentoEmProcessamento = false;
+
+    return;
+
+}
+
+
+   
+const {
+    db,
+    collection,
+    onSnapshot,
+    getDocs
+} = window.firebaseHotel;
+
+    const referenciaPedidos =
+        collection(
+
+            db,
+
+            "mesas",
+
+            obterIdMesa(),
+
+            "pedidos"
+
+        );
+
+
+    onSnapshot(
+
+        referenciaPedidos,
+
+
+        snapshot => {
+
+
+            pedidosMesa = [];
+
+
+            snapshot.forEach(
+                documento => {
+
+
+                    pedidosMesa.push({
+
+                        id:
+                            documento.id,
+
+                        ...documento.data()
+
+                    });
+
+                }
+            );
+
+
+            mostrarMesa();
+
+        },
+
+
+        erro => {
+
+
+            console.error(
+                "Erro ao carregar mesa:",
+                erro
+            );
+
+
+            alert(
+                "Não foi possível carregar os pedidos desta mesa."
+            );
+
+        }
+
+    );
+
+
+
+    
+    /* =========================================
+       ESCUTAR FECHAMENTOS DA MESA
+    ========================================= */
+
+    const referenciaFechamentos =
+        collection(db, "fechamentos");
+
+    onSnapshot(
+        referenciaFechamentos,
+
+        snapshot => {
+
+            fechamentoPendenteAtual = null;
+
+            snapshot.forEach(documento => {
+
+                const fechamento = documento.data();
+
+                const statusFechamento =
+                    String(fechamento.status || "")
+                        .toLowerCase();
+
+                const encerrado =
+                    [
+                        "concluido",
+                        "finalizado",
+                        "fechado"
+                    ].includes(statusFechamento);
+
+                if (
+                    fechamento.idMesa === obterIdMesa() &&
+                    !encerrado
+                ) {
+
+                    fechamentoPendenteAtual = {
+                        id: documento.id,
+                        ...fechamento
+                    };
+
+                }
+
+            });
+
+            mostrarMesa();
+
+        },
+
+        erro => {
+
+            console.error(
+                "Erro ao monitorar fechamentos:",
+                erro
+            );
+
+        }
+    );
+
+    }
 
         </div>
 
@@ -1259,9 +2263,53 @@ function mostrarMesa() {
         });
     });
 
-    // Atualizar o total.
+    // Atualizar o resumo principal da mesa.
+const rotuloValorMesa =
+    document.getElementById("rotuloValorMesa");
+
+const descontoResumoMesa =
+    document.getElementById("descontoResumoMesa");
+
+const valorDescontoMesa =
+    document.getElementById("valorDescontoMesa");
+
+if (fechamentoPendenteAtual) {
+
+    const totalFinal =
+        Number(fechamentoPendenteAtual.total || 0);
+
+    const desconto =
+        Number(fechamentoPendenteAtual.desconto || 0);
+
+    rotuloValorMesa.textContent = "Valor Total";
+
     valorMesa.textContent =
-        "R$ " + calcularTotalMesa().toFixed(2);
+        "R$ " + totalFinal.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+    valorDescontoMesa.textContent =
+        "R$ " + desconto.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+    descontoResumoMesa.style.display = "flex";
+
+} else {
+
+    rotuloValorMesa.textContent = "Consumo atual";
+
+    valorMesa.textContent =
+        "R$ " + calcularTotalMesa().toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+    descontoResumoMesa.style.display = "none";
+
+}
 
     // Renderizar a lista de consumo.
     listaConsumo.innerHTML = "";
@@ -1464,11 +2512,38 @@ function atualizarTotalFechamento() {
         (totalFechamentoAtual - desconto).toFixed(2)
     );
 
-    campoTotal.textContent =
+        campoTotal.textContent =
         "R$ " + totalFinal.toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
+
+    // Atualizar também o resumo principal.
+    const rotulo = document.getElementById("rotuloValorMesa");
+    const valor = document.getElementById("valorMesa");
+    const linhaDesconto = document.getElementById("descontoResumoMesa");
+    const valorDesconto = document.getElementById("valorDescontoMesa");
+
+    if (
+        document.getElementById("modalFechamento")
+            .classList.contains("mostrar")
+    ) {
+        rotulo.textContent = "Valor Total";
+
+        valor.textContent =
+            "R$ " + totalFinal.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+        valorDesconto.textContent =
+            "R$ " + desconto.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+        linhaDesconto.style.display = "flex";
+    }
 }
 
 document.getElementById(
@@ -1483,15 +2558,44 @@ document.getElementById(
    CANCELAR FECHAMENTO
 ========================================= */
 
+
 function cancelarFechamento() {
 
     document.getElementById(
         "modalFechamento"
-    ).classList.remove(
-        "mostrar"
-    );
+    ).classList.remove("mostrar");
 
+    // Se já existe um fechamento pendente,
+    // manter o resumo com o valor final.
+    if (fechamentoPendenteAtual) {
+
+        mostrarMesa();
+
+        return;
+    }
+
+    // Sem fechamento pendente, restaurar
+    // o resumo original da mesa.
+    const rotulo =
+        document.getElementById("rotuloValorMesa");
+
+    const valor =
+        document.getElementById("valorMesa");
+
+    const linhaDesconto =
+        document.getElementById("descontoResumoMesa");
+
+    rotulo.textContent = "Consumo atual";
+
+    valor.textContent =
+        "R$ " + calcularTotalMesa().toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+    linhaDesconto.style.display = "none";
 }
+
 
 
 /* =========================================
