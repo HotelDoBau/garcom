@@ -1416,53 +1416,59 @@ function fecharMesa() {
 }
 
 
-
 /* =========================================
    ATUALIZAR TOTAL COM DESCONTO
 ========================================= */
 
-function atualizarTotalFechamento() {
+function obterDescontoInformado() {
 
     const campoDesconto =
         document.getElementById("descontoFechamento");
 
-    const campoTotal =
-        document.getElementById("totalFechamento");
-
-    if (!campoDesconto || !campoTotal) {
-        return;
-    }
-
     let valor = campoDesconto.value.trim();
 
-    // Aceitar valores no formato brasileiro
-    // (20,50 ou 1.200,50) e decimal com ponto (20.50).
+    if (valor === "") {
+        return 0;
+    }
+
     if (valor.includes(",")) {
         valor = valor
             .replace(/\./g, "")
             .replace(",", ".");
     }
 
-    let desconto = valor === "" ? 0 : Number(valor);
+    const desconto = Number(valor);
 
     if (!Number.isFinite(desconto) || desconto < 0) {
-        desconto = 0;
+        return 0;
     }
 
-    desconto = Math.min(desconto, totalFechamentoAtual);
+    return Math.min(
+        Number(desconto.toFixed(2)),
+        totalFechamentoAtual
+    );
+}
+
+function atualizarTotalFechamento() {
+
+    const campoTotal =
+        document.getElementById("totalFechamento");
+
+    if (!campoTotal) {
+        return;
+    }
+
+    const desconto = obterDescontoInformado();
 
     const totalFinal = Number(
         (totalFechamentoAtual - desconto).toFixed(2)
     );
 
     campoTotal.textContent =
-        "R$ " + totalFinal.toLocaleString(
-            "pt-BR",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }
-        );
+        "R$ " + totalFinal.toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
 }
 
 document.getElementById(
@@ -1796,52 +1802,16 @@ if (fechamentoPendenteAtual) {
 }
 
 
-    let valorDesconto =
-        document.getElementById(
-            "descontoFechamento"
-        ).value;
+   const desconto =
+    obterDescontoInformado();
 
-
-    valorDesconto =
-        valorDesconto
-            .replace(/\./g, "")
-            .replace(",", ".");
-
-
-    let desconto =
-        Number(valorDesconto);
-
-
-    if (
-        isNaN(desconto) ||
-        desconto < 0
-    ) {
-
-        desconto = 0;
-
-    }
-
-
-    if (
-        desconto >
-        totalFechamentoAtual
-    ) {
-
-        desconto =
-            totalFechamentoAtual;
-
-    }
-
-
-    const totalFinal =
-        Number(
-
-            (
-                totalFechamentoAtual -
-                desconto
-            ).toFixed(2)
-
-        );
+const totalFinal =
+    Number(
+        (
+            totalFechamentoAtual -
+            desconto
+        ).toFixed(2)
+    );
 
 
     const quartoMesa =
