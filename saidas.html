@@ -147,69 +147,87 @@
        LISTA DE FECHAMENTOS
     ========================================= */
 
-    .lista-vendas {
-        width: calc(100% - 30px);
-        max-width: 700px;
-        margin: 20px auto;
-    }
+  .lista-vendas {
+    width: calc(100% - 30px);
+    max-width: 700px;
+    margin: 20px auto;
+}
 
 
-    .venda-card {
-        margin-bottom: 14px;
-        padding: 18px;
-        background: white;
-        border-radius: 14px;
-        box-shadow:
-            0 3px 12px
-            rgba(0,0,0,0.07);
-        box-sizing: border-box;
-    }
+.venda-card {
+    margin-bottom: 14px;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #258bff;
+    border-radius: 14px;
+
+    box-shadow:
+        0 0 5px rgba(37, 139, 255, 0.35),
+        0 0 12px rgba(37, 139, 255, 0.12),
+        0 3px 12px rgba(0, 0, 0, 0.07);
+
+    box-sizing: border-box;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.venda-card:hover {
+    border-color: #006eff;
+
+    box-shadow:
+        0 0 7px rgba(0, 110, 255, 0.55),
+        0 0 16px rgba(0, 110, 255, 0.20),
+        0 4px 14px rgba(0, 0, 0, 0.10);
+}
 
 
-    .venda-data {
-        margin-bottom: 12px;
-        color: #6b737a;
-        font-size: 13px;
-    }
+.venda-data {
+    margin-bottom: 12px;
+    color: #6b737a;
+    font-size: 13px;
+}
 
 
-    .venda-local {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 15px;
-        margin-bottom: 12px;
-    }
+.venda-local {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 12px;
+}
 
 
-    .venda-local strong {
-        color: #17212b;
-        font-size: 18px;
-    }
+.venda-local strong {
+    color: #15569a;
+    font-size: 18px;
+    font-weight: 800;
+}
 
 
-    .venda-total {
-        color: #17212b;
-        font-size: 18px;
-        font-weight: bold;
-        white-space: nowrap;
-    }
+.venda-total {
+    color: #15569a;
+    font-size: 20px;
+    font-weight: 800;
+    white-space: nowrap;
+}
 
 
-    .venda-linha {
-        border-top: 1px solid #edf0f2;
-        padding-top: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-    }
+.venda-linha {
+    border-top: 1px solid #edf0f2;
+    padding-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
 
 
-    .venda-info {
-        color: #737b82;
-        font-size: 13px;
-    }
+.venda-info {
+    color: #737b82;
+    font-size: 13px;
+}
 
 
     /* =========================================
