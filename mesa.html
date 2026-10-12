@@ -457,14 +457,39 @@ try {
 
 try {
         const {
-            db,
-            collection,
-            getDocs,
-            updateDoc,
-            deleteDoc,
-            addDoc,
-            serverTimestamp
-        } = window.firebaseHotel;
+    db,
+    collection,
+    getDocs,
+    getDoc,
+    doc,
+    updateDoc,
+    deleteDoc,
+    addDoc,
+    serverTimestamp
+} = window.firebaseHotel;
+
+    const referenciaDocumentoMesa = doc(
+    db,
+    "mesas",
+    obterIdMesa()
+);
+
+const documentoMesa = await getDoc(
+    referenciaDocumentoMesa
+);
+
+if (
+    documentoMesa.exists() &&
+    String(
+        documentoMesa.data().status || ""
+    ).toLowerCase() === "pagamento"
+) {
+    alert(
+        "Esta mesa está em processo de fechamento. Não é possível alterar o consumo."
+    );
+
+    return;
+}
 
         // ===========================
         // IDENTIFICAR GARÇOM
