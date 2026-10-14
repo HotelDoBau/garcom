@@ -787,6 +787,7 @@ const conteudoComanda =
 
 let saidasFirebase = [];
 
+let vendaSelecionadaParaImpressao = null;
 
 /* =========================================
    FORMATAR MOEDA
@@ -1522,6 +1523,8 @@ function verComanda(idVenda) {
         return;
 
     }
+
+        vendaSelecionadaParaImpressao = venda;
 
 
     const itens =
