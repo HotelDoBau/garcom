@@ -782,7 +782,7 @@ pedido.itens.forEach(
                 style="
                     font-size: 1.3em;
                     font-weight: 700;
-                    margin-bottom: 10px;
+                    margin-bottom: 20px;
                 "
             >
                 ${quantidade} x ${nome}
