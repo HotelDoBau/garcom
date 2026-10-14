@@ -1753,6 +1753,333 @@ function verComanda(idVenda) {
 
 }
 
+    /* =========================================
+   REIMPRIMIR COMANDA FINALIZADA
+========================================= */
+
+function reimprimirComanda() {
+
+    const venda =
+        vendaSelecionadaParaImpressao;
+
+    if (!venda) {
+
+        alert(
+            "Selecione uma comanda para reimprimir."
+        );
+
+        return;
+
+    }
+
+    const itens =
+        Array.isArray(venda.itens)
+            ? venda.itens
+            : [];
+
+    function escaparTextoImpressao(valor) {
+
+        return String(valor ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+
+    }
+
+    const somaItens =
+        itens.reduce(
+            (soma, item) => {
+
+                const quantidade =
+                    Number(item.quantidade || 0);
+
+                const preco =
+                    Number(
+                        item.preco ??
+                        item.valorUnitario ??
+                        0
+                    );
+
+                const totalItem =
+                    Number(
+                        item.total ??
+                        (preco * quantidade)
+                    );
+
+                return soma + totalItem;
+
+            },
+            0
+        );
+
+    const subtotal =
+        venda.subtotal != null
+            ? Number(venda.subtotal)
+            : somaItens;
+
+    const desconto =
+        Number(venda.desconto || 0);
+
+    const total =
+        obterTotalVenda(venda);
+
+    const numeroComanda =
+        venda.numeroComanda ??
+        venda.comanda ??
+        venda.numeroPedido;
+
+    const garcom =
+        venda.garcomNome;
+
+    let conteudo = `
+
+        <div style="text-align:center;">
+
+            <img
+                src="https://hoteldobau.github.io/hotel-pwa/img/logo.jpg"
+                style="
+                    width:120px;
+                    max-width:100%;
+                    margin-bottom:8px;
+                "
+            >
+
+            <div style="font-size:16px;font-weight:bold;">
+                HOTEL DO BAÚ
+            </div>
+
+            <div>Rua Nove de Julho, 177 – Centro</div>
+            <div>Santa Rosa de Viterbo – SP</div>
+            <div>CNPJ: 59.143.158/0001-63</div>
+            <div>(16) 9 9159-8910</div>
+            <div>reservas@hoteldobau.com.br</div>
+
+        </div>
+
+        <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+
+        <div style="text-align:center;font-weight:bold;font-size:15px;">
+            CONTA DE CONSUMO
+        </div>
+
+        <div style="text-align:center;font-size:10px;margin-top:3px;">
+            DEMONSTRATIVO DE CONSUMO<br>
+            NÃO É DOCUMENTO FISCAL
+        </div>
+
+        <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+
+        <div>
+            <strong>${escaparTextoImpressao(obterLocalVenda(venda))}</strong>
+        </div>
+
+    `;
+
+    if (numeroComanda != null && numeroComanda !== "") {
+
+        conteudo += `
+            <div>
+                Comanda:
+                ${escaparTextoImpressao(numeroComanda)}
+            </div>
+        `;
+
+    }
+
+    if (garcom) {
+
+        conteudo += `
+            <div>
+                Garçom:
+                ${escaparTextoImpressao(garcom)}
+            </div>
+        `;
+
+    }
+
+    conteudo += `
+        <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+    `;
+
+    if (itens.length === 0) {
+
+        conteudo += `
+            <div>Nenhum item registrado.</div>
+        `;
+
+    } else {
+
+        itens.forEach(item => {
+
+            const quantidade =
+                Number(item.quantidade || 0);
+
+            const preco =
+                Number(
+                    item.preco ??
+                    item.valorUnitario ??
+                    0
+                );
+
+            const totalItem =
+                Number(
+                    item.total ??
+                    (preco * quantidade)
+                );
+
+            conteudo += `
+
+                <div style="margin:7px 0;">
+
+                    <div style="font-weight:bold;overflow-wrap:anywhere;">
+                        ${escaparTextoImpressao(item.nome || "Produto")}
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;gap:5px;">
+                        <span>
+                            ${quantidade} x ${formatarMoeda(preco)}
+                        </span>
+
+                        <strong>
+                            ${formatarMoeda(totalItem)}
+                        </strong>
+                    </div>
+
+                </div>
+
+            `;
+
+        });
+
+    }
+
+    conteudo += `
+
+        <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+
+        <div style="display:flex;justify-content:space-between;margin:5px 0;">
+            <span>Subtotal</span>
+            <strong>${formatarMoeda(subtotal)}</strong>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin:5px 0;">
+            <span>Desconto</span>
+            <strong>${formatarMoeda(desconto)}</strong>
+        </div>
+
+        <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;margin:8px 0;">
+            <span>TOTAL</span>
+            <span>${formatarMoeda(total)}</span>
+        </div>
+
+        <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+
+        <div style="text-align:center;font-size:11px;">
+            ${escaparTextoImpressao(obterDataVenda(venda))}
+        </div>
+
+        <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+
+        <div style="
+            text-align:center;
+            font-size:12px;
+            line-height:1.5;
+            margin:12px 0 8px;
+            padding:0 2px;
+            white-space:normal;
+            overflow-wrap:anywhere;
+        ">
+            <strong>Obrigado pela preferência!</strong>
+            <br>
+            Volte sempre.
+        </div>
+
+    `;
+
+    const iframe =
+        document.createElement("iframe");
+
+    iframe.style.position = "fixed";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+
+    document.body.appendChild(iframe);
+
+      const documento =
+        iframe.contentWindow.document;
+
+    iframe.onload = function() {
+
+        setTimeout(() => {
+
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+
+            setTimeout(() => {
+
+                iframe.remove();
+
+            }, 1500);
+
+        }, 700);
+
+    };
+
+    documento.open();
+
+    documento.write(`
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+
+            <title>Reimprimir comanda</title>
+
+            <style>
+                @page {
+                    size: 80mm auto;
+                    margin: 3mm;
+                }
+
+                * {
+                    box-sizing: border-box;
+                }
+
+                body {
+                    width: 72mm;
+                    margin: 0 auto;
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    color: #000;
+                    overflow-wrap: anywhere;
+                }
+
+                img {
+                    object-fit: contain;
+                }
+
+                hr {
+                    width: 100%;
+                }
+            </style>
+        </head>
+
+        <body>
+            ${conteudo}
+        </body>
+        </html>
+    `);
+
+    documento.close();
+
+}
 
 /* =========================================
    FECHAR COMANDA
@@ -1839,6 +2166,9 @@ window.fecharComanda =
 
 window.excluirVenda =
     excluirVenda;
+
+window.reimprimirComanda =
+    reimprimirComanda;
 
 </script>
 
