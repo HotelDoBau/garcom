@@ -1810,15 +1810,21 @@ async function imprimirFechamentoAutomaticamente(fechamento) {
             `;
         }
 
-        // PIX E MENSAGEM FINAL
+      
+        // MENSAGEM FINAL
         conteudo += `
                 <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
 
-                <div style="text-align:center;line-height:1.6;">
-                    <strong>PIX</strong>
-                    <br>
-                    reservas@hoteldobau.com.br
-                    <br><br>
+                <div style="
+                    text-align:center;
+                    font-size:12px;
+                    line-height:1.5;
+                    margin:12px 0 8px;
+                    padding:0 2px;
+                    white-space:normal;
+                    overflow-wrap:anywhere;
+                    word-break:normal;
+                ">
                     <strong>Obrigado pela preferência!</strong>
                     <br>
                     Volte sempre.
@@ -1826,6 +1832,7 @@ async function imprimirFechamentoAutomaticamente(fechamento) {
 
             </div>
         `;
+
 
         // Envia a conta para impressão.
         await abrirImpressao(conteudo, configuracao);
