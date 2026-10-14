@@ -3209,10 +3209,16 @@ window.fecharMenu =
 
 
 
-<script
-    type="module"
-    src="js/impressao.js"
-></script>
+<script type="module">
+    const dispositivoMovel =
+        /Android|iPhone|iPad|iPod|Mobile/i.test(
+            navigator.userAgent
+        );
+
+    if (!dispositivoMovel) {
+        import("./js/impressao.js");
+    }
+</script>
 
 <script>
     if ("serviceWorker" in navigator) {
