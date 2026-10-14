@@ -761,78 +761,38 @@ const pesoFonteProducao =
     // ITENS
     // =================================================
 
-    pedido.itens.forEach(
-        item => {
+  
+pedido.itens.forEach(
+    item => {
 
-            const quantidade =
-                Number(
-                    item.quantidade || 0
-                );
+        const quantidade =
+            Number(
+                item.quantidade || 0
+            );
 
+        const nome =
+            escaparHTML(
+                item.nome
+            );
 
-            const nome =
-                escaparHTML(
-                    item.nome
-                );
+        conteudo += `
 
+            <div
+                class="item-producao"
+                style="
+                    font-size: 1.3em;
+                    font-weight: 700;
+                    margin-bottom: 4px;
+                "
+            >
+                ${quantidade} x ${nome}
+            </div>
 
-            if (
-                configuracao.mostrarPrecos &&
-                item.preco !== undefined
-            ) {
+        `;
 
-                const subtotal =
-                    quantidade *
-                    Number(
-                        item.preco || 0
-                    );
+    }
+);
 
-
-                conteudo += `
-
-                    <div
-                        class="linha-item-impressao"
-                    >
-
-                        <span>
-
-                            ${quantidade}
-                            x
-                            ${nome}
-
-                        </span>
-
-                        <span>
-
-                            R$
-                            ${formatarValor(
-                                subtotal
-                            )}
-
-                        </span>
-
-                    </div>
-
-                `;
-
-            } else {
-
-                conteudo += `
-
-                    <div class="item-producao">
-
-                        ${quantidade}
-                        x
-                        ${nome}
-
-                    </div>
-
-                `;
-
-            }
-
-        }
-    );
 
 
     // =================================================
@@ -847,19 +807,25 @@ const pesoFonteProducao =
 
             <div class="separador"></div>
 
-            <div class="obs">
+           
+<div
+    class="obs"
+    style="
+        font-size: 1.3em;
+        font-weight: 700;
+        line-height: 1.4;
+        margin-top: 4px;
+        overflow-wrap: anywhere;
+    "
+>
+    <strong>OBSERVAÇÃO:</strong>
 
-                <strong>
-                    OBSERVAÇÃO:
-                </strong>
+    <br>
 
-                <br>
-
-                ${escaparHTML(
-                    pedido.observacao
-                )}
-
-            </div>
+    ${escaparHTML(
+        pedido.observacao
+    )}
+</div>
 
         `;
 
