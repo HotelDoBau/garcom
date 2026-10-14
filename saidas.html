@@ -2012,72 +2012,68 @@ function reimprimirComanda() {
 
     document.body.appendChild(iframe);
 
-      const documento =
-        iframe.contentWindow.document;
+     const documento =
+    iframe.contentWindow.document;
 
-    iframe.onload = function() {
+documento.open();
 
-        setTimeout(() => {
+documento.write(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
 
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
+        <title>Reimprimir comanda</title>
 
-            setTimeout(() => {
+        <style>
+            @page {
+                size: 80mm auto;
+                margin: 3mm;
+            }
 
-                iframe.remove();
+            * {
+                box-sizing: border-box;
+            }
 
-            }, 1500);
+            body {
+                width: 72mm;
+                margin: 0 auto;
+                font-family: Arial, sans-serif;
+                font-size: 12px;
+                color: #000;
+                overflow-wrap: anywhere;
+            }
 
-        }, 700);
+            img {
+                object-fit: contain;
+            }
 
-    };
+            hr {
+                width: 100%;
+            }
+        </style>
+    </head>
 
-    documento.open();
+    <body>
+        ${conteudo}
 
-    documento.write(`
-        <!DOCTYPE html>
-        <html lang="pt-BR">
-        <head>
-            <meta charset="UTF-8">
+        <script>
+            window.onload = function() {
+                setTimeout(function() {
+                    window.focus();
+                    window.print();
+                }, 700);
+            };
+        <\/script>
+    </body>
+    </html>
+`);
 
-            <title>Reimprimir comanda</title>
+documento.close();
 
-            <style>
-                @page {
-                    size: 80mm auto;
-                    margin: 3mm;
-                }
-
-                * {
-                    box-sizing: border-box;
-                }
-
-                body {
-                    width: 72mm;
-                    margin: 0 auto;
-                    font-family: Arial, sans-serif;
-                    font-size: 12px;
-                    color: #000;
-                    overflow-wrap: anywhere;
-                }
-
-                img {
-                    object-fit: contain;
-                }
-
-                hr {
-                    width: 100%;
-                }
-            </style>
-        </head>
-
-        <body>
-            ${conteudo}
-        </body>
-        </html>
-    `);
-
-    documento.close();
+setTimeout(() => {
+    iframe.remove();
+}, 60000);
 
 }
 
