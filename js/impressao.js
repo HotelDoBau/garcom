@@ -1082,23 +1082,37 @@ async function imprimirConsumoMesa(
     );
 
 
-    let conteudo = `
+   
+let conteudo = `
 
-        <div class="central">
+    <div
+        class="central"
+        style="font-weight: 700;"
+    >
 
-            <div class="identificacao-print">
-                HOTEL DO BAÚ
-            </div>
-
-            <div>
-                CONSUMO ATUAL
-            </div>
-
+        <div
+            class="identificacao-print"
+            style="font-size: 1.3em;"
+        >
+            HOTEL DO BAÚ
         </div>
 
-        <div class="separador"></div>
+        <div
+            style="
+                font-size: 1.5em;
+                font-weight: 700;
+                margin-top: 5px;
+            "
+        >
+            CONSUMO ATUAL
+        </div>
 
-    `;
+    </div>
+
+    <div class="separador"></div>
+
+`;
+
 
 
     // =================================================
@@ -1211,9 +1225,17 @@ async function imprimirConsumoMesa(
 
                 conteudo += `
 
-                    <div
-                        class="linha-item-impressao"
-                    >
+                   
+<div
+    class="linha-item-impressao"
+    style="
+        font-size: 1.2em;
+        font-weight: 700;
+        margin-bottom: 5px;
+        line-height: 1.4;
+    "
+>
+
 
                         <span>
 
@@ -1242,7 +1264,17 @@ async function imprimirConsumoMesa(
 
                 conteudo += `
 
-                    <div class="item-producao">
+                    
+<div
+    class="item-producao"
+    style="
+        font-size: 1.2em;
+        font-weight: 700;
+        margin-bottom: 5px;
+        line-height: 1.4;
+    "
+>
+
 
                         ${item.quantidade}
                         x
@@ -1272,9 +1304,18 @@ async function imprimirConsumoMesa(
 
             <div class="separador"></div>
 
-            <div
-                class="linha-item-impressao"
-            >
+            
+<div
+    class="linha-item-impressao"
+    style="
+        font-size: 1.5em;
+        font-weight: 700;
+        margin-top: 6px;
+        margin-bottom: 6px;
+        line-height: 1.4;
+    "
+>
+
 
                 <strong>
                     TOTAL
@@ -1328,15 +1369,23 @@ async function imprimirConsumoMesa(
 
         <div class="separador"></div>
 
-        <div class="central">
+       
+<div
+    class="central"
+    style="
+        font-size: 1.15em;
+        font-weight: 700;
+        line-height: 1.5;
+        margin-top: 5px;
+    "
+>
+    CONTA PARCIAL
 
-            CONTA PARCIAL
+    <br>
 
-            <br>
+    MESA PERMANECE ABERTA
+</div>
 
-            MESA PERMANECE ABERTA
-
-        </div>
 
     `;
 
