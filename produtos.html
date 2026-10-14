@@ -110,6 +110,29 @@ body {
             border-color: #17212b;
         }
 
+        /* =========================================
+   CORREÇÃO DE CONTRASTE DOS CAMPOS
+========================================= */
+
+.campo input,
+.campo select {
+    color: #17212b !important;
+    background-color: #ffffff !important;
+    opacity: 1;
+    -webkit-text-fill-color: #17212b;
+}
+
+.campo select option {
+    color: #17212b !important;
+    background-color: #ffffff !important;
+    opacity: 1;
+}
+
+.campo input::placeholder {
+    color: #6b7280;
+    opacity: 1;
+}
+
 
         .foto-preview {
             margin-top: 12px;
