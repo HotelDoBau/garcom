@@ -863,16 +863,7 @@ conteudo += `
     </div>
 
 `;
-console.log(
-    "Itens do consumo:",
-    itensMap.size,
-    Array.from(itensMap.values())
-);
 
-console.log(
-    "HTML do consumo:",
-    conteudo
-);
     await abrirImpressao(
         conteudo,
         configuracao
@@ -1640,30 +1631,70 @@ async function imprimirFechamentoAutomaticamente(fechamento) {
             ? fechamento.itens
             : [];
 
+    
+        // =====================================================
+        // MONTAGEM DA CONTA FINAL
+        // =====================================================
+
         let conteudo = `
-            <div style="text-align:center;font-family:Arial,sans-serif;">
+            <div style="
+                font-family: Arial, sans-serif;
+                color: #000;
+                font-size: 12px;
+            ">
 
-                <strong style="font-size:18px;">
-                    HOTEL DO BAÚ
-                </strong>
+                <div style="text-align:center;">
 
-                <br>
+                    <img
+                        src="https://hoteldobau.github.io/hotel-pwa/img/logo.jpg"
+                        alt="Logo Hotel do Baú"
+                        style="
+                            display:block;
+                            width:100px;
+                            max-width:100%;
+                            height:auto;
+                            margin:0 auto 6px;
+                        "
+                    >
 
-                <strong style="font-size:16px;">
-                    CONTA FINAL
-                </strong>
+                    <strong style="font-size:18px;">
+                        HOTEL DO BAÚ
+                    </strong>
 
-                <hr>
+                    <div style="margin-top:5px;line-height:1.5;">
+                        Rua Nove de Julho, 177 – Centro
+                        <br>
+                        Santa Rosa de Viterbo – SP
+                        <br>
+                        CNPJ: 59.143.158/0001-63
+                        <br>
+                        Telefone: (16) 9 9159-8910
+                        <br>
+                        reservas@hoteldobau.com.br
+                    </div>
+
+                    <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+
+                    <strong style="font-size:17px;">
+                        CONTA DE CONSUMO
+                    </strong>
+
+                    <div style="font-size:10px;margin-top:4px;">
+                        DEMONSTRATIVO DE CONSUMO
+                        <br>
+                        NÃO É DOCUMENTO FISCAL
+                    </div>
+
+                </div>
+
+                <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
         `;
 
         // MESA / QUARTO
         if (configuracao.mostrarMesa) {
             conteudo += `
-                <div style="text-align:left;">
-                    <strong>
-                        ${nomeLocal} ${numero}
-                    </strong>
-                    <br><br>
+                <div style="font-size:15px;font-weight:bold;margin-bottom:8px;">
+                    ${escaparHTML(nomeLocal)} ${escaparHTML(numero)}
                 </div>
             `;
         }
@@ -1677,8 +1708,8 @@ async function imprimirFechamentoAutomaticamente(fechamento) {
 
         if (configuracao.mostrarComanda && numeroComanda) {
             conteudo += `
-                <div style="text-align:center;margin-bottom:8px;">
-                    Pedido #${escaparHTML(numeroComanda)}
+                <div style="margin-bottom:6px;">
+                    Comanda: #${escaparHTML(numeroComanda)}
                 </div>
             `;
         }
@@ -1686,76 +1717,113 @@ async function imprimirFechamentoAutomaticamente(fechamento) {
         // GARÇOM
         if (configuracao.mostrarGarcom && fechamento.garcomNome) {
             conteudo += `
-                <div style="text-align:center;font-weight:bold;margin-bottom:8px;">
-                    GARÇOM: ${escaparHTML(fechamento.garcomNome)}
+                <div style="margin-bottom:6px;">
+                    Garçom: ${escaparHTML(fechamento.garcomNome)}
                 </div>
             `;
         }
 
-        // ITENS
-        itens.forEach(item => {
+        // ITENS E SUBTOTAIS
+        conteudo += `
+            <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+        `;
 
+        itens.forEach(item => {
             const quantidade = Number(item.quantidade || 0);
             const preco = Number(item.preco || 0);
             const subtotalItem = preco * quantidade;
 
             if (configuracao.mostrarPrecos) {
                 conteudo += `
-                    <div class="linha-item-impressao" style="margin-bottom:8px;">
-                        <span>
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:flex-start;
+                        gap:6px;
+                        font-size:12px;
+                        font-weight:bold;
+                        line-height:1.4;
+                        margin-bottom:7px;
+                    ">
+                        <span style="flex:1;overflow-wrap:anywhere;">
                             ${quantidade}x ${escaparHTML(item.nome)}
                         </span>
-                        <span>
+
+                        <span style="white-space:nowrap;">
                             R$ ${formatarValor(subtotalItem)}
                         </span>
                     </div>
                 `;
             } else {
                 conteudo += `
-                    <div style="margin-bottom:8px;">
+                    <div style="font-weight:bold;margin-bottom:7px;line-height:1.4;">
                         ${quantidade}x ${escaparHTML(item.nome)}
                     </div>
                 `;
             }
         });
 
-        // VALORES FINAIS
+        // SUBTOTAL, DESCONTO E TOTAL
         const subtotal = Number(fechamento.subtotal || 0);
         const desconto = Number(fechamento.desconto || 0);
         const total = Number(fechamento.total || 0);
 
         if (configuracao.mostrarPrecos) {
             conteudo += `
-                <hr>
+                <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
 
-                <div style="text-align:right;font-size:14px;">
-                    Subtotal: R$ ${formatarValor(subtotal)}
-                    <br>
-                    Desconto: R$ ${formatarValor(desconto)}
-                    <br><br>
+                <div style="line-height:1.8;">
+                    <div style="display:flex;justify-content:space-between;gap:6px;">
+                        <span>Subtotal</span>
+                        <span>R$ ${formatarValor(subtotal)}</span>
+                    </div>
 
-                    <strong style="font-size:18px;">
-                        TOTAL: R$ ${formatarValor(total)}
-                    </strong>
+                    <div style="display:flex;justify-content:space-between;gap:6px;">
+                        <span>Desconto</span>
+                        <span>R$ ${formatarValor(desconto)}</span>
+                    </div>
+
+                    <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        gap:6px;
+                        font-size:18px;
+                        font-weight:bold;
+                    ">
+                        <span>TOTAL</span>
+                        <span>R$ ${formatarValor(total)}</span>
+                    </div>
                 </div>
             `;
         }
 
-        // HORÁRIO
-        if (configuracao.mostrarHorario) {
+        // DATA E HORÁRIO
+        if (configuracao.mostrarHorario && fechamento.dataHora) {
             conteudo += `
-                <br>
-                <div style="text-align:center;font-size:12px;">
-                    ${escaparHTML(fechamento.dataHora || "")}
+                <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+
+                <div style="text-align:center;">
+                    ${escaparHTML(fechamento.dataHora)}
                 </div>
             `;
         }
 
+        // PIX E MENSAGEM FINAL
         conteudo += `
-                <br>
-                <div style="text-align:center;font-size:12px;">
-                    Obrigado pela preferência!
+                <hr style="border:0;border-top:1px dashed #000;margin:8px 0;">
+
+                <div style="text-align:center;line-height:1.6;">
+                    <strong>PIX</strong>
+                    <br>
+                    reservas@hoteldobau.com.br
+                    <br><br>
+                    <strong>Obrigado pela preferência!</strong>
+                    <br>
+                    Volte sempre.
                 </div>
+
             </div>
         `;
 
