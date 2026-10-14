@@ -782,7 +782,7 @@ pedido.itens.forEach(
                 style="
                     font-size: 1.3em;
                     font-weight: 700;
-                    margin-bottom: 4px;
+                    margin-bottom: 10px;
                 "
             >
                 ${quantidade} x ${nome}
@@ -863,7 +863,16 @@ conteudo += `
     </div>
 
 `;
+console.log(
+    "Itens do consumo:",
+    itensMap.size,
+    Array.from(itensMap.values())
+);
 
+console.log(
+    "HTML do consumo:",
+    conteudo
+);
     await abrirImpressao(
         conteudo,
         configuracao
