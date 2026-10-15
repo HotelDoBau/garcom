@@ -1390,10 +1390,11 @@ let conteudo = `
     `;
 
 
-    await abrirImpressao(
-        conteudo,
-        configuracao
-    );
+   await abrirImpressao(
+    conteudo,
+    configuracao,
+    automatica
+);
 
 }
 
