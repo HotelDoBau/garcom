@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste QZ Tray - Hotel do Baú</title>
+</head>
+<body>
+    <h2>Teste de impressão - Hotel do Baú</h2>
+
+    <p id="status">Aguardando teste.</p>
+
+    <button id="conectar">Conectar e localizar impressora</button>
+    <button id="imprimir" disabled>Imprimir teste</button>
+
+    <script src="./js/lib/qz-tray.js"></script>
+
+    <script>
+        let impressoraSelecionada = null;
+
+        const status = document.getElementById("status");
+        const botaoConectar = document.getElementById("conectar");
+        const botaoImprimir = document.getElementById("imprimir");
+
+        botaoConectar.addEventListener("click", async () => {
+            try {
+                status.textContent = "Conectando ao QZ Tray...";
+
+                if (!window.qz) {
+                    throw new Error("Biblioteca QZ Tray não carregada.");
+                }
+
+                if (!qz.websocket.isActive()) {
+                    await qz.websocket.connect();
+                }
+
+                status.textContent = "Conectado. Procurando impressoras...";
+
+                const impressoras = await qz.printers.find();
+
+                console.log("Impressoras encontradas:", impressoras);
+
+                const nomes = Array.isArray(impressoras)
+                    ? impressoras
+                    : [impressoras];
+
+                impressoraSelecionada = nomes.find(nome =>
+                    String(nome).toUpperCase().includes("POS-80")
+                );
+
+                if (!impressoraSelecionada) {
+                    status.textContent =
+                        "Conectado, mas POS-80 não encontrada. Consulte o console.";
+                    return;
+                }
+
+                status.textContent =
+                    "Impressora encontrada: " + impressoraSelecionada;
+
+                botaoImprimir.disabled = false;
+
+            } catch (erro) {
+                console.error("Erro no teste QZ Tray:", erro);
+                status.textContent =
+                    "Erro: " + (erro.message || String(erro));
+            }
+        });
+
+        botaoImprimir.addEventListener("click", async () => {
+            try {
+                status.textContent = "Enviando teste para a impressora...";
+
+                const configuracao = qz.configs.create(
+                    impressoraSelecionada,
+                    {
+                        size: { width: 80 },
+                        units: "mm",
+                        margins: 3
+                    }
+                );
+
+                const dados = [{
+                    type: "pixel",
+                    format: "html",
+                    flavor: "plain",
+                    data: `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <style>
+                                body {
+                                    width: 72mm;
+                                    font-family: Arial, sans-serif;
+                                    color: black;
+                                    font-size: 16px;
+                                }
+                                .centro { text-align: center; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="centro">
+                                <h2>HOTEL DO BAÚ</h2>
+                                <hr>
+                                <h3>TESTE QZ TRAY</h3>
+                                <p>Impressora: POS-80</p>
+                                <p>Impressão direta funcionando.</p>
+                                <hr>
+                            </div>
+                        </body>
+                        </html>
+                    `
+                }];
+
+                await qz.print(configuracao, dados);
+
+                status.textContent =
+                    "Envio concluído. Confira se a folha saiu.";
+
+            } catch (erro) {
+                console.error("Erro ao imprimir:", erro);
+                status.textContent =
+                    "Falha na impressão: " +
+                    (erro.message || String(erro));
+            }
+        });
+    </script>
+</body>
+</html>
