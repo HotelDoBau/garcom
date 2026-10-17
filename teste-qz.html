@@ -22,9 +22,10 @@
         
         // Certificado de confiança do QZ Tray
         qz.security.setCertificatePromise(function(resolve, reject) {
-            fetch("http://127.0.0.1:8183/certificate", {
-                cache: "no-store"
-            })
+           fetch("http://127.0.0.1:8183/certificate", {
+    cache: "no-store",
+    targetAddressSpace: "loopback"
+})
             .then(function(response) {
                 if (!response.ok) {
                     throw new Error("Não foi possível carregar o certificado.");
