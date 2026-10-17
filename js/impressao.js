@@ -212,340 +212,320 @@ function liberarTravaImpressao(chave) {
 }
 
 
-// =====================================================
-// IMPRESSÃO
-// =====================================================
 
-function abrirImpressao(
+async function abrirImpressao(
     conteudo,
     configuracao = CONFIGURACAO_IMPRESSAO_PADRAO
 ) {
+    // Carrega a biblioteca QZ Tray somente uma vez por página.
+    if (!window.qz) {
+        if (!window.__hotelBauQZScriptPromise) {
+            window.__hotelBauQZScriptPromise = new Promise(
+                (resolve, reject) => {
+                    const script = document.createElement("script");
 
-    return new Promise(
-        (resolve, reject) => {
+                    script.src = new URL(
+                        "./lib/qz-tray.js",
+                        import.meta.url
+                    ).href;
 
-            try {
+                    script.onload = () => {
+                        if (window.qz) {
+                            resolve(window.qz);
+                        } else {
+                            reject(
+                                new Error(
+                                    "A biblioteca QZ Tray não foi carregada."
+                                )
+                            );
+                        }
+                    };
 
-                const iframe =
-                    document.createElement("iframe");
+                    script.onerror = () => {
+                        reject(
+                            new Error(
+                                "Não foi possível carregar js/lib/qz-tray.js."
+                            )
+                        );
+                    };
 
+                    document.head.appendChild(script);
+                }
+            ).catch(erro => {
+                window.__hotelBauQZScriptPromise = null;
+                throw erro;
+            });
+        }
 
-                iframe.style.position = "fixed";
-                iframe.style.width = "1px";
-                iframe.style.height = "1px";
-                iframe.style.border = "0";
-                iframe.style.opacity = "0";
-                iframe.style.pointerEvents = "none";
+        await window.__hotelBauQZScriptPromise;
+    }
 
+    const qzTray = window.qz;
 
-                document.body.appendChild(
-                    iframe
-                );
+    if (!qzTray) {
+        throw new Error("QZ Tray não está disponível.");
+    }
 
-
-                const documento =
-                    iframe.contentWindow.document;
-
-
-                const larguraPapel =
-                    Number(
-                        configuracao.larguraPapel
-                    ) === 80
-                        ? 80
-                        : 80;
-
-
-                const larguraConteudo =
-                    larguraPapel - 8;
-
-
-                const numeroVias =
-                    Math.max(
-                        1,
-                        Math.min(
-                            2,
-                            Number(
-                                configuracao.numeroVias
-                            ) || 1
-                        )
-                    );
-
-
-                let conteudoFinal = "";
-
-
-                for (
-                    let via = 1;
-                    via <= numeroVias;
-                    via++
-                ) {
-
-                    conteudoFinal += `
-
-                        <div class="via-impressao">
-
-                            ${conteudo}
-
-                        </div>
-
-                    `;
-
-
-                    if (
-                        via < numeroVias
-                    ) {
-
-                        conteudoFinal += `
-
-                            <div class="quebra-via"></div>
-
-                        `;
-
+    // Configura certificado e assinatura antes de conectar.
+    if (!window.__hotelBauQZSecurityConfigured) {
+        qzTray.security.setCertificatePromise(
+            function(resolve, reject) {
+                fetch("http://127.0.0.1:8183/certificate", {
+                    cache: "no-store",
+                    targetAddressSpace: "loopback"
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(
+                            "Não foi possível carregar o certificado."
+                        );
                     }
 
-                }
-
-
-                documento.open();
-
-
-                documento.write(`
-
-                    <!DOCTYPE html>
-
-                    <html>
-
-                    <head>
-
-                        <meta charset="UTF-8">
-
-                        <style>
-
-                            @page {
-
-                                size:
-                                    ${larguraPapel}mm auto;
-
-                                margin: 3mm;
-
-                            }
-
-
-                            html,
-                            body {
-
-                                margin: 0;
-
-                                padding: 0;
-
-                                width:
-                                    ${larguraConteudo}mm;
-
-                                font-family:
-                                    Arial,
-                                    sans-serif;
-
-                                font-size:
-                                    12px;
-
-                                color:
-                                    #000;
-
-                            }
-
-
-                            body {
-
-                                padding-bottom:
-                                    10px;
-
-                            }
-
-
-                            .central {
-
-                                text-align:
-                                    center;
-
-                            }
-
-
-                            .separador {
-
-                                border-top:
-                                    1px dashed #000;
-
-                                margin:
-                                    8px 0;
-
-                            }
-
-
-                            .identificacao-print {
-
-                                font-weight:
-                                    bold;
-
-                                font-size:
-                                    14px;
-
-                            }
-
-
-                            .mesa-print {
-
-                                font-weight:
-                                    bold;
-
-                                font-size:
-                                    15px;
-
-                                margin-top:
-                                    4px;
-
-                            }
-
-
-                            .linha-item-impressao {
-
-                                display:
-                                    flex;
-
-                                justify-content:
-                                    space-between;
-
-                                gap:
-                                    8px;
-
-                                margin:
-                                    4px 0;
-
-                            }
-
-
-                            .item-producao {
-
-                                font-size:
-                                    13px;
-
-                                margin:
-                                    4px 0;
-
-                            }
-
-
-                            .obs {
-
-                                margin-top:
-                                    8px;
-
-                                font-size:
-                                    12px;
-
-                            }
-
-
-                            .total-impressao {
-
-                                font-weight:
-                                    bold;
-
-                                font-size:
-                                    15px;
-
-                                margin-top:
-                                    8px;
-
-                            }
-
-
-                            .quebra-via {
-
-                                page-break-after:
-                                    always;
-
-                                break-after:
-                                    page;
-
-                                height:
-                                    1px;
-
-                            }
-
-
-                            .via-impressao {
-
-                                width:
-                                    100%;
-
-                            }
-
-                        </style>
-
-                    </head>
-
-                    <body>
-
-                        ${conteudoFinal}
-
-                    </body>
-
-                    </html>
-
-                `);
-
-
-                documento.close();
-
-
-                setTimeout(
-                    () => {
-
-                        try {
-
-                            iframe.contentWindow.focus();
-
-                            iframe.contentWindow.print();
-
-                        } catch (erro) {
-
-                            console.error(
-                                "Erro ao enviar impressão:",
-                                erro
-                            );
-
-                            reject(erro);
-
-                            return;
-
-                        }
-
-
-                        setTimeout(
-                            () => {
-
-                                iframe.remove();
-
-                                resolve();
-
-                            },
-                            1200
+                    return response.text();
+                })
+                .then(resolve)
+                .catch(reject);
+            }
+        );
+
+        qzTray.security.setSignatureAlgorithm("SHA512");
+
+        qzTray.security.setSignaturePromise(function(toSign) {
+            return function(resolve, reject) {
+                fetch("http://127.0.0.1:8183/sign", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    cache: "no-store",
+                    targetAddressSpace: "loopback",
+                    body: JSON.stringify({
+                        request: toSign
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(
+                            "Não foi possível assinar a solicitação."
+                        );
+                    }
+
+                    return response.text();
+                })
+                .then(resolve)
+                .catch(reject);
+            };
+        });
+
+        window.__hotelBauQZSecurityConfigured = true;
+    }
+
+    // Conecta ao QZ Tray sem abrir conexões concorrentes.
+    if (!qzTray.websocket.isActive()) {
+        if (!window.__hotelBauQZConnectPromise) {
+            window.__hotelBauQZConnectPromise =
+                qzTray.websocket.connect().catch(erro => {
+                    window.__hotelBauQZConnectPromise = null;
+                    throw erro;
+                });
+        }
+
+        try {
+            await window.__hotelBauQZConnectPromise;
+        } finally {
+            if (qzTray.websocket.isActive()) {
+                window.__hotelBauQZConnectPromise = null;
+            }
+        }
+    }
+
+    // Localiza e memoriza a impressora POS-80.
+    let impressora = window.__hotelBauQZPrinter;
+
+    if (!impressora) {
+        if (!window.__hotelBauQZFindPrinterPromise) {
+            window.__hotelBauQZFindPrinterPromise =
+                qzTray.printers.find()
+                    .then(resultado => {
+                        const nomes = Array.isArray(resultado)
+                            ? resultado
+                            : [resultado];
+
+                        const encontrada = nomes.find(nome =>
+                            String(nome)
+                                .toUpperCase()
+                                .includes("POS-80")
                         );
 
-                    },
-                    700
-                );
+                        if (!encontrada) {
+                            throw new Error(
+                                "Impressora POS-80 não encontrada."
+                            );
+                        }
 
+                        window.__hotelBauQZPrinter = encontrada;
 
-            } catch (erro) {
+                        return encontrada;
+                    })
+                    .catch(erro => {
+                        window.__hotelBauQZFindPrinterPromise = null;
+                        throw erro;
+                    });
+        }
 
-                reject(erro);
+        try {
+            impressora =
+                await window.__hotelBauQZFindPrinterPromise;
+        } finally {
+            window.__hotelBauQZFindPrinterPromise = null;
+        }
+    }
 
-            }
+    // Mantém o papel de 80 mm e a quantidade configurada de vias.
+    const larguraPapel =
+        Number(configuracao.larguraPapel) === 80 ? 80 : 80;
 
+    const larguraConteudo = larguraPapel - 8;
+
+    const numeroVias = Math.max(
+        1,
+        Math.min(
+            2,
+            Number(configuracao.numeroVias) || 1
+        )
+    );
+
+    let conteudoFinal = "";
+
+    for (let via = 1; via <= numeroVias; via++) {
+        conteudoFinal += `
+            <div class="via-impressao">
+                ${conteudo}
+            </div>
+        `;
+
+        if (via < numeroVias) {
+            conteudoFinal += `
+                <div class="quebra-via"></div>
+            `;
+        }
+    }
+
+    // Monta o documento HTML que será enviado diretamente ao QZ Tray.
+    const documentoHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+
+            <style>
+                @page {
+                    size: ${larguraPapel}mm auto;
+                    margin: 3mm;
+                }
+
+                html,
+                body {
+                    margin: 0;
+                    padding: 0;
+                    width: ${larguraConteudo}mm;
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    color: #000;
+                }
+
+                body {
+                    padding-bottom: 10px;
+                }
+
+                .central {
+                    text-align: center;
+                }
+
+                .separador {
+                    border-top: 1px dashed #000;
+                    margin: 8px 0;
+                }
+
+                .identificacao-print {
+                    font-weight: bold;
+                    font-size: 14px;
+                }
+
+                .mesa-print {
+                    font-weight: bold;
+                    font-size: 15px;
+                    margin-top: 4px;
+                }
+
+                .linha-item-impressao {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 8px;
+                    margin: 4px 0;
+                }
+
+                .item-producao {
+                    font-size: 13px;
+                    margin: 4px 0;
+                }
+
+                .obs {
+                    margin-top: 8px;
+                    font-size: 12px;
+                }
+
+                .total-impressao {
+                    font-weight: bold;
+                    font-size: 15px;
+                    margin-top: 8px;
+                }
+
+                .quebra-via {
+                    page-break-after: always;
+                    break-after: page;
+                    height: 1px;
+                }
+
+                .via-impressao {
+                    width: 100%;
+                }
+            </style>
+        </head>
+
+        <body>
+            ${conteudoFinal}
+        </body>
+        </html>
+    `;
+
+    const configuracaoQZ = qzTray.configs.create(
+        impressora,
+        {
+            size: {
+                width: larguraPapel
+            },
+            units: "mm",
+            margins: 3
         }
     );
+
+    const dadosImpressao = [
+        {
+            type: "pixel",
+            format: "html",
+            flavor: "plain",
+            data: documentoHTML
+        }
+    ];
+
+    // Só considera concluído quando o QZ Tray aceitar o envio.
+    await qzTray.print(
+        configuracaoQZ,
+        dadosImpressao
+    );
 }
+
 
 
 // =====================================================
