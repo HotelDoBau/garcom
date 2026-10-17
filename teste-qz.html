@@ -41,17 +41,17 @@
 
         qz.security.setSignaturePromise(function(toSign) {
             return function(resolve, reject) {
-                fetch("http://127.0.0.1:8183/sign", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    cache: "no-store",
-                    body: JSON.stringify({
-                        request: toSign
-                    })
-                })
-                .then(function(response) {
+               fetch("http://127.0.0.1:8183/sign", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    cache: "no-store",
+    targetAddressSpace: "loopback",
+    body: JSON.stringify({
+        request: toSign
+    })
+})                .then(function(response) {
                     if (!response.ok) {
                         throw new Error("Falha ao assinar a solicitação.");
                     }
